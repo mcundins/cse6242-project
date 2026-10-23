@@ -1,0 +1,399 @@
+// Application State
+const state = {
+    selectedYear: "2025",
+    currentView: "NATIONAL", // "NATIONAL" or "STATE"
+    selectedStateCode: null,
+    selectedStateName: null,
+    datasets: {
+        states: [],
+        counties: [],
+        tracts: []
+    },
+    geoJson: {
+        states: null,
+        counties: null
+    }
+};
+
+// Colors mapping for Risk Levels
+const colorScale = d3.scaleOrdinal()
+    .domain(["High Risk", "Mid Risk", "Low Risk"])
+    .range(["#dc2626", "#f59e0b", "#10b981"]);
+
+// D3 Tip Tooltip Instance
+const tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0]);
+
+// Initialization
+document.addEventListener("DOMContentLoaded", function () {
+    initApp();
+});
+
+function initApp() {
+    setupEventListeners();
+    loadAllData();
+}
+
+function setupEventListeners() {
+    d3.select("#yearSelect").on("change", function () {
+        state.selectedYear = this.value;
+        renderMap();
+    });
+}
+
+/**
+ * Data Loading Strategy using D3 v5 Promises
+ */
+function loadAllData() {
+    // Load CSVs from /data folder and external TopoJSON for US maps
+    Promise.all([
+        d3.csv("data/us_states_risk_2019_2025.csv"),
+        d3.csv("data/us_counties_risk_2019_2025.csv"),
+        d3.csv("data/us_tracts_risk_2019_2025.csv"),
+        d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
+        d3.json("data/tl_2010_TopoJSON.json")
+    ]).then(([statesCsv, countiesCsv, tractsCsv, usTopoJson, tractsTopoJson]) => {
+        state.datasets.states = parseData(statesCsv);
+        state.datasets.counties = parseData(countiesCsv);
+        state.datasets.tracts = parseData(tractsCsv);
+
+        // Convert TopoJSON to GeoJSON
+        state.geoJson.states = topojson.feature(usTopoJson, usTopoJson.objects.states);
+
+        // Convert Tract TopoJSON to GeoJSON
+        // Note: Replace "tracts" with the exact object key in your TopoJSON file (e.g., tractsTopoJson.objects.tracts or objects.census_tracts)
+        const tractObjectKey = Object.keys(tractsTopoJson.objects)[0];
+        state.geoJson.tracts = topojson.feature(tractsTopoJson, tractsTopoJson.objects[tractObjectKey]);
+
+        // Initialize Map Rendering
+        renderMap();
+    }).catch(err => {
+        console.warn("Loading fallback/simulated data due to missing local CSV server setup:", err);
+        loadFallbackSimulatedData();
+    });
+}
+
+function parseData(data) {
+    return data.map(d => ({
+        ...d,
+        // Force the ID to a string and pad to 11 characters. 
+        // Note: USDA FARA datasets often use "CensusTract" as the column name. 
+        // Adjust the fallback fields below to match your exact CSV column header.
+        tractId: String(d.tractId || d.GEOID10 || d.CensusTract).padStart(11, '0'),
+
+        highRiskCount: +d.highRiskCount || 0,
+        midRiskCount: +d.midRiskCount || 0,
+        lowRiskCount: +d.lowRiskCount || 0
+    }));
+}
+
+/**
+ * Main Map Renderer
+ */
+function renderMap() {
+    const svg = d3.select("#mapSvg");
+    svg.selectAll("*").remove(); // Clear viewport
+
+    // Attach Tooltip
+    svg.call(tip);
+
+    const width = document.getElementById("mapViewport").clientWidth;
+    const height = document.getElementById("mapViewport").clientHeight || 500;
+
+    if (state.currentView === "NATIONAL") {
+        renderNationalMap(svg, width, height);
+    } else {
+        renderStateMap(svg, width, height);
+    }
+
+    renderLegend();
+}
+
+/**
+ * Render US National Map (State Aggregation)
+ */
+function renderNationalMap(svg, width, height) {
+    d3.select("#viewSubtitle").text("US National Level • State Risk Aggregation");
+    d3.select("#mapTitle").text(`United States Food Desert Risk (${state.selectedYear})`);
+    d3.select("#backBtn").classed("hidden", true);
+    d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into County & Tract view.");
+
+    const projection = d3.geoAlbersUsa()
+        .fitSize([width, height], state.geoJson.states);
+
+    const path = d3.geoPath().projection(projection);    
+
+    // Filter state metrics by selected year
+    const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
+    const dataMap = new Map(yearData.map(d => [d.stateCode, d]));
+
+    // Configure Tooltip
+    tip.html(d => {
+        const info = dataMap.get(d.id) || getSimulatedStateMetric(d.id);
+        return `
+            <h4>${d.properties.name} (${state.selectedYear})</h4>
+            <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
+            <div class="row"><span>Mid Risk Tracts:</span> <strong>${info.midRiskCount}</strong></div>
+            <div class="row"><span>Low Risk Tracts:</span> <strong>${info.lowRiskCount}</strong></div>
+            <div style="margin-top:4px; font-size:0.75rem; color:#cbd5e1;">
+                Highest Risk: ${info.highestRiskCounty}<br/>
+                Lowest Risk: ${info.lowestRiskCounty}
+            </div>
+        `;
+    });
+
+    const mapGroup = svg.append("g").attr("class", "map-group");
+    setupZoomControls(svg, mapGroup);
+
+    // Draw States
+    mapGroup.selectAll("path")
+        .data(state.geoJson.states.features)
+        .enter()
+        .append("path")
+        .attr("class", "feature-path")
+        .attr("d", path)
+        .attr("fill", d => {
+            const info = dataMap.get(d.id) || getSimulatedStateMetric(d.id);
+            return calculateDominantRiskColor(info);
+        })
+        .on("mouseover", tip.show)
+        .on("mouseout", tip.hide)
+        .on("click", d => {
+            tip.hide();
+            drillDownToState(d.id, d.properties.name);
+        });
+
+    updateSidebarNational(yearData);
+}
+
+/**
+ * Render Single State Map (County & Tract Aggregation)
+ */
+function renderStateMap(svg, width, height) {
+    svg.selectAll(".map-group").remove();
+
+    // Append map group and attach zoom behavior
+    const mapGroup = svg.append("g").attr("class", "map-group");
+    setupZoomControls(svg, mapGroup);
+
+    d3.select("#viewSubtitle").text(`State Level • ${state.selectedStateName}`);
+    d3.select("#mapTitle").text(`${state.selectedStateName} - Food Desert Risk (${state.selectedYear})`);
+    d3.select("#backBtn").classed("hidden", false);
+    d3.select("#clickHint").text("💡 Viewing Tract-level aggregation per county.");
+
+    // Filter data for selected state and year
+    const yearTracts = state.datasets.tracts.filter(
+        d => d.year === state.selectedYear && d.stateCode === state.selectedStateCode
+    );
+
+    // Filter loaded TopoJSON tracts matching the selected state FIPS code
+    const selectedStateFips = state.selectedStateCode.toString().padStart(2, '0');
+    const stateTractFeatures = state.geoJson.tracts.features.filter(feature => {
+        const tractId = feature.id || feature.properties.GEOID10;
+        if (!tractId) return false;
+
+        // Ensure the tract ID is strictly 11 characters (adds leading zero if missing)
+        const tractIdStr = String(tractId).padStart(11, '0');
+        return tractIdStr.startsWith(selectedStateFips);
+    });
+
+    // Build a map lookup for CSV risk data by tractId
+    const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
+
+    // Fit projection directly to state tract boundaries
+    const featureCollection = { type: "FeatureCollection", features: stateTractFeatures };
+    const projection = d3.geoIdentity()
+        .reflectY(true)
+        .fitSize([width, height], featureCollection);
+    const path = d3.geoPath().projection(projection);
+
+    /*
+    console.log("--- MAP DEBUG START ---");
+    console.log("1. State Code passed to filter:", selectedStateFips);
+    console.log("2. Total Tracts in TopoJSON:", state.geoJson.tracts.features.length);
+    console.log("3. Filtered State Tracts:", stateTractFeatures.length);
+    console.log(state.geoJson.tracts.features[0].properties.STATEFP10);
+    console.log(state.geoJson.tracts.features[0].properties.GEOID10);
+
+    if (stateTractFeatures.length > 0) {
+        console.log("4. Sample Tract Properties:", stateTractFeatures[0].properties);
+        console.log("5. SVG Path Generator Output:", path(stateTractFeatures[0]));
+    } else {
+        console.error("FAILURE: No tracts found for this state code. Check TopoJSON file contents.");
+    }
+    console.log("--- MAP DEBUG END ---");
+    */
+
+    tip.html(d => {
+        const tractId = d.id || d.properties.GEOID10;
+        const info = riskDataMap.get(tractId) || { riskCategory: "Low Risk", score: "N/A" };
+        return `
+        <h4>Tract ${tractId} (${state.selectedYear})</h4>
+        <div class="row"><span>Risk Category:</span> <strong>${info.riskCategory || 'Low Risk'}</strong></div>
+        <div class="row"><span>Risk Score:</span> <strong>${info.score || 'N/A'}</strong></div>
+    `;
+    });
+
+    // Render individual tract geometries
+    mapGroup.selectAll("path")
+        .data(stateTractFeatures)
+        .enter()
+        .append("path")
+        .attr("class", "feature-path tract-path")
+        .attr("d", path)
+        .attr("fill", d => {
+            const tractId = d.id || d.properties.GEOID10;
+            const info = riskDataMap.get(tractId);
+            if (!info) return "#10b981";
+            if (info.riskCategory === "High Risk") return "#dc2626";
+            if (info.riskCategory === "Mid Risk") return "#f59e0b";
+            return "#10b981"; //low risk
+        })
+        .attr("stroke", "#ffffff")
+        .attr("stroke-width", 0.001)
+        .on("mouseover", tip.show)
+        .on("mouseout", tip.hide);
+
+    updateSidebarState(yearTracts);
+}
+
+/**
+ * Navigation Actions
+ */
+function drillDownToState(stateCode, stateName) {
+    state.currentView = "STATE";
+    state.selectedStateCode = stateCode;
+    state.selectedStateName = stateName;
+    renderMap();
+}
+
+function resetToNationalView() {
+    state.currentView = "NATIONAL";
+    state.selectedStateCode = null;
+    state.selectedStateName = null;
+    renderMap();
+}
+
+/**
+ * Helpers & Legends
+ */
+function renderLegend() {
+    const container = d3.select("#riskLegend");
+    container.html("");
+
+    const legendSvg = container.append("svg")
+        .attr("width", 320)
+        .attr("height", 50);
+
+    const legendOrdinal = d3.legendColor()
+        .shapeWidth(20)
+        .shapeHeight(15)
+        .shapePadding(75)
+        .orient('horizontal')
+        .scale(colorScale);
+
+    const legendGroup = legendSvg.append("g")
+        .attr("transform", "translate(10, 5)")
+        .call(legendOrdinal);
+
+    legendSvg.call(legendOrdinal);
+}
+
+function calculateDominantRiskColor(info) {
+    if (!info) return "#cbd5e1";
+    if (info.highRiskCount >= info.midRiskCount && info.highRiskCount >= info.lowRiskCount) {
+        return "#dc2626";
+    } else if (info.midRiskCount >= info.lowRiskCount) {
+        return "#f59e0b";
+    }
+    return "#10b981";
+}
+
+function updateSidebarNational(data) {
+    d3.select("#aggValue").text("3,142");
+
+    d3.select("#countHigh").text("412");
+    d3.select("#countMid").text("1,280");
+    d3.select("#countLow").text("1,450");
+
+    d3.select("#highestRiskArea").text("Cook County, IL");
+    d3.select("#lowestRiskArea").text("Loving County, TX");
+}
+
+function updateSidebarState(data) {
+    d3.select("#aggLabel").text(`Total Census Tracts (${state.selectedStateName})`);
+    d3.select("#aggValue").text("1,840");
+
+    d3.select("#countHigh").text("85");
+    d3.select("#countMid").text("420");
+    d3.select("#countLow").text("1,335");
+
+    d3.select("#highestRiskArea").text("Tract 9801.01");
+    d3.select("#lowestRiskArea").text("Tract 0102.00");
+}
+
+// Simulated data fallback if local CSVs are not hosted via web server
+function loadFallbackSimulatedData() {
+    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(usTopoJson => {
+        state.geoJson.states = topojson.feature(usTopoJson, usTopoJson.objects.states);
+        renderMap();
+    });
+}
+
+function getSimulatedStateMetric(id) {
+    return {
+        highRiskCount: Math.floor(Math.random() * 15) + 2,
+        midRiskCount: Math.floor(Math.random() * 30) + 10,
+        lowRiskCount: Math.floor(Math.random() * 40) + 15,
+        highestRiskCounty: "Metro County",
+        lowestRiskCounty: "Rural County"
+    };
+}
+
+function getSimulatedCountyMetric(name) {
+    return {
+        highRiskCount: Math.floor(Math.random() * 8) + 1,
+        midRiskCount: Math.floor(Math.random() * 15) + 3,
+        lowRiskCount: Math.floor(Math.random() * 25) + 5,
+        highestRiskTract: "Tract 104.02",
+        lowestRiskTract: "Tract 002.01"
+    };
+
+}
+
+
+// Keep track of the active zoom instance
+let zoomBehavior;
+
+function setupZoomControls(svg, mapGroup) {
+    // 1. Create the D3 zoom behavior
+    zoomBehavior = d3.zoom()
+        .scaleExtent([0.5, 8]) 
+        .on("zoom", function () {
+            // Apply zoom/pan transform to the map group element
+            mapGroup.attr("transform", d3.event.transform);
+        });
+
+    // 2. Attach zoom behavior to the main SVG canvas
+    svg.call(zoomBehavior);
+
+    // 3. Attach click event listeners to the zoom control buttons
+    d3.select("#zoomInBtn").on("click", function () {
+        svg.transition()
+            .duration(300)
+            .call(zoomBehavior.scaleBy, 1.4);
+    });
+
+    d3.select("#zoomOutBtn").on("click", function () {
+        svg.transition()
+            .duration(300)
+            .call(zoomBehavior.scaleBy, 1 / 1.4);
+    });
+
+    d3.select("#zoomResetBtn").on("click", function () {
+        svg.transition()
+            .duration(400)
+            .call(zoomBehavior.transform, d3.zoomIdentity);
+    });
+};

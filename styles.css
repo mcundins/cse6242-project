@@ -1,0 +1,342 @@
+/* Base Resets and Design Tokens */
+:root {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    
+    /* Risk Colors */
+    --risk-high: #dc2626;
+    --risk-mid: #f59e0b;
+    --risk-low: #10b981;
+    --map-hover: #3b82f6;
+
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.app-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.logo-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-title h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.year-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.select-wrapper select {
+    padding: 0.4rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    cursor: pointer;
+}
+
+.btn {
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Layout */
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    flex: 1;
+}
+
+.map-card, .sidebar-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* SVG Viewport */
+.map-viewport {
+    flex: 1;
+    min-height: 500px;
+    position: relative;
+    background-color: #fafafa;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#mapSvg {
+    width: 100%;
+    height: 100%;
+}
+
+.feature-path {
+    stroke: #ffffff;
+    stroke-width: 0.75px;
+    cursor: pointer;
+    transition: fill 0.2s, stroke 0.2s;
+}
+
+.feature-path:hover {
+    stroke: #000000;
+    stroke-width: 1.5px;
+    opacity: 0.85;
+}
+
+.map-footer-hint {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Tooltip (d3-tip styling) */
+.d3-tip {
+    line-height: 1.4;
+    padding: 10px 14px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    pointer-events: none !important;
+    z-index: 1000;
+}
+
+.d3-tip h4 {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 4px;
+}
+
+.d3-tip .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Sidebar Analytics */
+.stats-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.stat-box {
+    background: #f1f5f9;
+    padding: 1rem;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.risk-breakdown-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.risk-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.risk-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.risk-card.high .risk-indicator { background: var(--risk-high); }
+.risk-card.mid .risk-indicator { background: var(--risk-mid); }
+.risk-card.low .risk-indicator { background: var(--risk-low); }
+
+.risk-count {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: block;
+}
+
+.risk-name {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.extremes-section {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.extremes-section h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.extreme-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.ext-label {
+    color: var(--text-secondary);
+    display: block;
+}
+
+.ext-value {
+    font-weight: 600;
+}
+
+.high-text { color: var(--risk-high); }
+.low-text { color: var(--risk-low); }
+
+.legend-container {
+    display: flex;
+    align-items: center;
+    overflow: visible;
+}
+
+.legend-container svg {
+    overflow: visible;
+}
+
+/* Adjust legend swatches and labels */
+.legendCells .cell .label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Ensure the parent viewport has relative positioning */
+.map-viewport {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Floating Zoom Controls */
+.zoom-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+
+.zoom-controls button {
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.zoom-controls button:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+#zoomResetBtn {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+}

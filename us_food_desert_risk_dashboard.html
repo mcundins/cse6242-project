@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Food Desert Risk Analysis Dashboard (2019 & 2025)</title>
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- D3 v5 and Required Libraries -->
+    <script src="lib/d3.v5.min.js"></script>
+    <script src="lib/d3-dsv.min.js"></script>
+    <script src="lib/d3-geo-projection.v2.min.js"></script>
+    <script src="lib/d3-legend.min.js"></script>
+    <script src="lib/d3-tip.min.js"></script>
+    <script src="lib/topojson.v2.min.js"></script>
+</head>
+
+<body>
+
+    <!-- App Header & Navigation -->
+    <header class="app-header">
+        <div class="logo-title">
+            <svg class="icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            <div>
+                <h1>US Food Desert Risk Dashboard</h1>
+                <span class="subtitle" id="viewSubtitle">US National Level • State Risk Aggregation</span>
+            </div>
+        </div>
+
+        <div class="controls-bar">
+            <!-- Year Selector Toggle -->
+            <div class="year-toggle-group">
+                <label for="yearSelect">Analysis Year:</label>
+                <div class="select-wrapper">
+                    <select id="yearSelect">
+                        <option value="2019">2019</option>
+                        <option value="2025" selected>2025</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <button id="backBtn" class="btn btn-secondary hidden" onclick="resetToNationalView()">
+                ← Back to US National Map
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="main-container">
+        <!-- Left: Map Container -->
+        <section class="map-card">
+            <div class="card-header">
+                <h2 id="mapTitle"></h2>
+                <div id="riskLegend" class="legend-container"></div>
+            </div>
+
+            <div class="map-viewport" id="mapViewport">
+                <div class="zoom-controls">
+                    <button id="zoomInBtn" title="Zoom In">+</button>
+                    <button id="zoomOutBtn" title="Zoom Out">−</button>
+                    <button id="zoomResetBtn" title="Reset View">Reset</button>
+                </div>
+                <!-- D3 Map rendered inside svg -->
+                <svg id="mapSvg"></svg>
+            </div>
+
+            <div class="map-footer-hint">
+                <span id="clickHint">💡 Tip: Click on any State to drill down into County & Census Tract risk
+                    view.</span>
+            </div>
+        </section>
+
+        <!-- Right: Summary Metrics Panel -->
+        <aside class="sidebar-card">
+            <div class="card-header">
+                <h2>Risk Statistics & Metrics</h2>
+            </div>
+
+            <div class="stats-body" id="statsBody">
+                <div class="stat-box aggregate">
+                    <span class="stat-label" id="aggLabel">Total US Tracts Analyzed</span>
+                    <span class="stat-value" id="aggValue">3,142</span>
+                </div>
+
+                <div class="risk-breakdown-grid">
+                    <div class="risk-card high">
+                        <div class="risk-indicator"></div>
+                        <div class="risk-details">
+                            <span class="risk-count" id="countHigh">-</span>
+                            <span class="risk-name" id="labelHigh">High Risk Tracts</span>
+                        </div>
+                    </div>
+                    <div class="risk-card mid">
+                        <div class="risk-indicator"></div>
+                        <div class="risk-details">
+                            <span class="risk-count" id="countMid">-</span>
+                            <span class="risk-name" id="labelMid">Mid Risk Tracts</span>
+                        </div>
+                    </div>
+                    <div class="risk-card low">
+                        <div class="risk-indicator"></div>
+                        <div class="risk-details">
+                            <span class="risk-count" id="countLow">-</span>
+                            <span class="risk-name" id="labelLow">Low Risk Tracts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="extremes-section">
+                    <h3>Extremes Analysis</h3>
+                    <div class="extreme-item">
+                        <span class="ext-label">Highest Risk:</span>
+                        <span class="ext-value high-text" id="highestRiskArea">Loading...</span>
+                    </div>
+                    <div class="extreme-item">
+                        <span class="ext-label">Lowest Risk:</span>
+                        <span class="ext-value low-text" id="lowestRiskArea">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Main JavaScript Application Logic -->
+    <script src="app.js"></script>
+</body>
+
+</html>
