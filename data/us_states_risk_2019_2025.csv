@@ -1,0 +1,103 @@
+year,stateCode,stateName,highRiskCount,midRiskCount,lowRiskCount,highestRiskCounty,lowestRiskCounty
+2019,01,Alabama,11,28,28,Jefferson County,Greene County
+2019,02,Alaska,4,11,14,Anchorage Municipality,Yakutat City and Borough
+2019,04,Arizona,3,6,6,Maricopa County,Greenlee County
+2019,05,Arkansas,10,32,33,Pulaski County,Calhoun County
+2019,06,California,12,24,22,Los Angeles County,Alpine County
+2019,08,Colorado,8,26,30,Denver County,San Juan County
+2019,09,Connecticut,2,3,3,Fairfield County,Windham County
+2019,10,Delaware,1,1,1,New Castle County,Kent County
+2019,11,District of Columbia,1,0,0,District of Columbia,District of Columbia
+2019,12,Florida,14,28,25,Miami-Dade County,Lafayette County
+2019,13,Georgia,22,68,69,Fulton County,Taliaferro County
+2019,15,Hawaii,1,2,2,Honolulu County,Kalawao County
+2019,16,Idaho,5,18,21,Ada County,Clark County
+2019,17,Illinois,18,42,42,Cook County,Hardin County
+2019,18,Indiana,14,39,39,Marion County,Ohio County
+2019,19,Iowa,11,42,46,Polk County,Adams County
+2019,20,Kansas,13,44,48,Sedgwick County,Greeley County
+2019,21,Kentucky,18,51,51,Jefferson County,Robertson County
+2019,22,Louisiana,11,27,26,East Baton Rouge Parish,Tensas Parish
+2019,23,Maine,2,7,7,Cumberland County,Piscataquis County
+2019,24,Maryland,4,10,10,Prince George's County,Kent County
+2019,25,Massachusetts,3,6,5,Middlesex County,Nantucket County
+2019,26,Michigan,13,35,35,Wayne County,Keweenaw County
+2019,27,Minnesota,12,37,38,Hennepin County,Traverse County
+2019,28,Mississippi,13,35,34,Hinds County,Issaquena County
+2019,29,Missouri,17,49,49,St. Louis County,Worth County
+2019,30,Montana,6,24,26,Yellowstone County,Petroleum County
+2019,31,Nebraska,12,40,41,Douglas County,McPherson County
+2019,32,Nevada,2,7,8,Clark County,Esmeralda County
+2019,33,New Hampshire,1,4,5,Hillsborough County,Coos County
+2019,34,New Jersey,4,9,8,Bergen County,Salem County
+2019,35,New Mexico,5,14,14,Bernalillo County,Harding County
+2019,36,New York,10,26,26,Kings County,Hamilton County
+2019,37,North Carolina,15,43,42,Mecklenburg County,Tyrrell County
+2019,38,North Dakota,6,23,24,Cass County,Slope County
+2019,39,Ohio,13,38,37,Cuyahoga County,Vinton County
+2019,40,Oklahoma,12,33,32,Oklahoma County,Cimarron County
+2019,41,Oregon,5,15,16,Multnomah County,Wheeler County
+2019,42,Pennsylvania,10,28,29,Philadelphia County,Cameron County
+2019,44,Rhode Island,1,2,2,Providence County,Bristol County
+2019,45,South Carolina,7,20,19,Greenville County,Allendale County
+2019,46,South Dakota,7,28,31,Minnehaha County,Jones County
+2019,47,Tennessee,14,41,40,Shelby County,Pickett County
+2019,48,Texas,32,108,114,Harris County,Loving County
+2019,49,Utah,4,12,13,Salt Lake County,Daggett County
+2019,50,Vermont,1,6,7,Chittenden County,Essex County
+2019,51,Virginia,18,57,58,Fairfax County,Highland County
+2019,53,Washington,6,16,17,King County,Garfield County
+2019,54,West Virginia,8,23,24,Kanawha County,Wirt County
+2019,55,Wisconsin,11,30,31,Milwaukee County,Florence County
+2019,56,Wyoming,3,10,10,Laramie County,Niobrara County
+2025,01,Alabama,16,26,25,Jefferson County,Greene County
+2025,02,Alaska,6,12,11,Anchorage Municipality,Yakutat City and Borough
+2025,04,Arizona,5,6,4,Maricopa County,Greenlee County
+2025,05,Arkansas,15,31,29,Pulaski County,Calhoun County
+2025,06,California,18,22,18,Los Angeles County,Alpine County
+2025,08,Colorado,12,25,27,Denver County,San Juan County
+2025,09,Connecticut,3,3,2,Fairfield County,Windham County
+2025,10,Delaware,1,1,1,New Castle County,Kent County
+2025,11,District of Columbia,1,0,0,District of Columbia,District of Columbia
+2025,12,Florida,21,25,21,Miami-Dade County,Lafayette County
+2025,13,Georgia,31,64,64,Fulton County,Taliaferro County
+2025,15,Hawaii,2,2,1,Honolulu County,Kalawao County
+2025,16,Idaho,8,18,18,Ada County,Clark County
+2025,17,Illinois,24,39,39,Cook County,Hardin County
+2025,18,Indiana,19,37,36,Marion County,Ohio County
+2025,19,Iowa,16,41,42,Polk County,Adams County
+2025,20,Kansas,18,42,45,Sedgwick County,Greeley County
+2025,21,Kentucky,24,48,48,Jefferson County,Robertson County
+2025,22,Louisiana,16,25,23,East Baton Rouge Parish,Tensas Parish
+2025,23,Maine,3,7,6,Cumberland County,Piscataquis County
+2025,24,Maryland,6,9,9,Prince George's County,Kent County
+2025,25,Massachusetts,4,6,4,Middlesex County,Nantucket County
+2025,26,Michigan,19,32,32,Wayne County,Keweenaw County
+2025,27,Minnesota,17,35,35,Hennepin County,Traverse County
+2025,28,Mississippi,19,32,31,Hinds County,Issaquena County
+2025,29,Missouri,23,46,46,St. Louis County,Worth County
+2025,30,Montana,9,23,24,Yellowstone County,Petroleum County
+2025,31,Nebraska,17,38,38,Douglas County,McPherson County
+2025,32,Nevada,4,6,7,Clark County,Esmeralda County
+2025,33,New Hampshire,2,4,4,Hillsborough County,Coos County
+2025,34,New Jersey,6,8,7,Bergen County,Salem County
+2025,35,New Mexico,8,13,12,Bernalillo County,Harding County
+2025,36,New York,15,24,23,Kings County,Hamilton County
+2025,37,North Carolina,21,40,39,Mecklenburg County,Tyrrell County
+2025,38,North Dakota,9,22,22,Cass County,Slope County
+2025,39,Ohio,19,35,34,Cuyahoga County,Vinton County
+2025,40,Oklahoma,17,31,29,Oklahoma County,Cimarron County
+2025,41,Oregon,8,14,14,Multnomah County,Wheeler County
+2025,42,Pennsylvania,15,26,26,Philadelphia County,Cameron County
+2025,44,Rhode Island,2,2,1,Providence County,Bristol County
+2025,45,South Carolina,11,18,17,Greenville County,Allendale County
+2025,46,South Dakota,10,27,29,Minnehaha County,Jones County
+2025,47,Tennessee,20,38,37,Shelby County,Pickett County
+2025,48,Texas,45,102,107,Harris County,Loving County
+2025,49,Utah,6,11,12,Salt Lake County,Daggett County
+2025,50,Vermont,2,6,6,Chittenden County,Essex County
+2025,51,Virginia,25,54,54,Fairfax County,Highland County
+2025,53,Washington,9,15,15,King County,Garfield County
+2025,54,West Virginia,11,22,22,Kanawha County,Wirt County
+2025,55,Wisconsin,15,29,28,Milwaukee County,Florence County
+2025,56,Wyoming,4,10,9,Laramie County,Niobrara County
