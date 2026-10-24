@@ -1,0 +1,781 @@
+{
+  "crs": "EPSG:4326",
+  "coordinate_order": "longitude,latitude",
+  "state_file": "states.geojson",
+  "years": {
+    "2019": {
+      "tract_vintage": 2010,
+      "boundary_release": 2019,
+      "states": {
+        "01": {
+          "path": "tracts/2010/01.topojson",
+          "features": 1180,
+          "bytes": 2202363,
+          "object_name": "tracts",
+          "sha256": "5017a71d5f6379f6fd2dee63f5584394d7699c8cb4806471252a0bce778405d7"
+        },
+        "02": {
+          "path": "tracts/2010/02.topojson",
+          "features": 167,
+          "bytes": 4204933,
+          "object_name": "tracts",
+          "sha256": "b52c94ef10ada242b4d03504727366836c8c8891df190674b787e23161fc5b75"
+        },
+        "04": {
+          "path": "tracts/2010/04.topojson",
+          "features": 1526,
+          "bytes": 1691384,
+          "object_name": "tracts",
+          "sha256": "43c667e9aab1bf576f610e7cc8032b68ab144c6f1e1382b318159fc5041c5445"
+        },
+        "05": {
+          "path": "tracts/2010/05.topojson",
+          "features": 686,
+          "bytes": 1498847,
+          "object_name": "tracts",
+          "sha256": "48a4728aa49fcb8f88b08d3a5ae70b7eab5c83f644239257b0472a968ac5cad7"
+        },
+        "06": {
+          "path": "tracts/2010/06.topojson",
+          "features": 8041,
+          "bytes": 7058190,
+          "object_name": "tracts",
+          "sha256": "30a86fa98bd6052b0be4ecf09fb5571e0a7a366943e726a9d600d0d8885a4109"
+        },
+        "08": {
+          "path": "tracts/2010/08.topojson",
+          "features": 1249,
+          "bytes": 1527729,
+          "object_name": "tracts",
+          "sha256": "8140e6355abce5b81b29afb94e855a5316fd9e4d306738df71c3566f1ec604ff"
+        },
+        "09": {
+          "path": "tracts/2010/09.topojson",
+          "features": 829,
+          "bytes": 679739,
+          "object_name": "tracts",
+          "sha256": "398ca2a1a3a054b98cae67fd7ef81e865dd1069ff825f4ac709c3fe7e0fbf679"
+        },
+        "10": {
+          "path": "tracts/2010/10.topojson",
+          "features": 217,
+          "bytes": 213043,
+          "object_name": "tracts",
+          "sha256": "8f6623026b3fcf8b05dbd7fec6fa4e804468077e44feae78243874aca836c39e"
+        },
+        "11": {
+          "path": "tracts/2010/11.topojson",
+          "features": 179,
+          "bytes": 99789,
+          "object_name": "tracts",
+          "sha256": "118b8495884c4e962f5c22fc0dfe931da1902ff98b25cdec0f2dd8b473d62cd3"
+        },
+        "12": {
+          "path": "tracts/2010/12.topojson",
+          "features": 4210,
+          "bytes": 3611571,
+          "object_name": "tracts",
+          "sha256": "f9f824d5ba7ce0f1e0b112954d170c28f496336481d44ff81e4fccc3ef678dd3"
+        },
+        "13": {
+          "path": "tracts/2010/13.topojson",
+          "features": 1966,
+          "bytes": 2863923,
+          "object_name": "tracts",
+          "sha256": "4ccb613ca9d6c41093db006149a1da0d69959a7ec7c153f4ed1e8be3229c56a1"
+        },
+        "15": {
+          "path": "tracts/2010/15.topojson",
+          "features": 331,
+          "bytes": 536233,
+          "object_name": "tracts",
+          "sha256": "a7409fbf08867dd32f5636c0c1b1020d3571b7474317353bb0385a5a2ff5d85c"
+        },
+        "16": {
+          "path": "tracts/2010/16.topojson",
+          "features": 298,
+          "bytes": 830861,
+          "object_name": "tracts",
+          "sha256": "f726cf1c05325e201e8274d7e502d09ad6b384879a0b2b81b75f487f6cd5cbc6"
+        },
+        "17": {
+          "path": "tracts/2010/17.topojson",
+          "features": 3121,
+          "bytes": 2665671,
+          "object_name": "tracts",
+          "sha256": "e72d1f6d960131ca3938072aba02dfb72cbf5967eb71d3777970172b257ba517"
+        },
+        "18": {
+          "path": "tracts/2010/18.topojson",
+          "features": 1508,
+          "bytes": 1383646,
+          "object_name": "tracts",
+          "sha256": "f0de9853674ef9f8e7f79a33dad5a7d84a0eebe71899c8bf0815b812d63a110a"
+        },
+        "19": {
+          "path": "tracts/2010/19.topojson",
+          "features": 825,
+          "bytes": 978136,
+          "object_name": "tracts",
+          "sha256": "211336d52dde63f187e8d8eb42c7bdd5b22501a62ef3b5497827b6f4b49fc201"
+        },
+        "20": {
+          "path": "tracts/2010/20.topojson",
+          "features": 770,
+          "bytes": 743899,
+          "object_name": "tracts",
+          "sha256": "7b7ee74da68180f6b1d5eca1f695ed4c5a431b88b0d4c2409ab64a6a0560c6d2"
+        },
+        "21": {
+          "path": "tracts/2010/21.topojson",
+          "features": 1115,
+          "bytes": 2159167,
+          "object_name": "tracts",
+          "sha256": "aaaaf13aab08581f3d5ff356c052d167fb07ff693679b52e52348fbc9eac485f"
+        },
+        "22": {
+          "path": "tracts/2010/22.topojson",
+          "features": 1140,
+          "bytes": 1817974,
+          "object_name": "tracts",
+          "sha256": "2a338b73af798ff703b0db7d8302942dd1914d823defc3c8baaa7488fa4a8f12"
+        },
+        "23": {
+          "path": "tracts/2010/23.topojson",
+          "features": 355,
+          "bytes": 595563,
+          "object_name": "tracts",
+          "sha256": "442428b1c5c377be05b7094721c5a633e6f045b84abeb474a58bbfa1c6ce8d5d"
+        },
+        "24": {
+          "path": "tracts/2010/24.topojson",
+          "features": 1396,
+          "bytes": 1472807,
+          "object_name": "tracts",
+          "sha256": "98f0dca48bc2c6b2a1adb8dc5ab712761cdec8608b7f28730e78e0ca4bd6ebd2"
+        },
+        "25": {
+          "path": "tracts/2010/25.topojson",
+          "features": 1474,
+          "bytes": 1171512,
+          "object_name": "tracts",
+          "sha256": "dc7dee26bf7768b5e327843d74812ef763fdb6beb634a217ab9eab46a9d2d974"
+        },
+        "26": {
+          "path": "tracts/2010/26.topojson",
+          "features": 2772,
+          "bytes": 2385148,
+          "object_name": "tracts",
+          "sha256": "576bbccb4296f370145ec0892515b55b56508ae08f20efbe15a3c9a29c62d1e4"
+        },
+        "27": {
+          "path": "tracts/2010/27.topojson",
+          "features": 1336,
+          "bytes": 1615569,
+          "object_name": "tracts",
+          "sha256": "f95cd9944aa566292214e60d31f8c549960d2bd0cc9bf3b17fed2f88cb8e9368"
+        },
+        "28": {
+          "path": "tracts/2010/28.topojson",
+          "features": 661,
+          "bytes": 1215445,
+          "object_name": "tracts",
+          "sha256": "17ba174de23c16df72403464143d474d7bb9aa66aced96b709ab6c04ca5e4ecf"
+        },
+        "29": {
+          "path": "tracts/2010/29.topojson",
+          "features": 1393,
+          "bytes": 1972213,
+          "object_name": "tracts",
+          "sha256": "76098bbc3aa1f93610f5a4666d7ca553144e925e07878d8ce20ba36e7e312993"
+        },
+        "30": {
+          "path": "tracts/2010/30.topojson",
+          "features": 271,
+          "bytes": 1103941,
+          "object_name": "tracts",
+          "sha256": "c4548151035e477b9895042087ebc0e1babcd2290b11669a0fa82ca42e2dbf18"
+        },
+        "31": {
+          "path": "tracts/2010/31.topojson",
+          "features": 532,
+          "bytes": 591470,
+          "object_name": "tracts",
+          "sha256": "697631ee048b0e69c7d253439515d9624da5a5caef8027118f15b8b2ac504bf6"
+        },
+        "32": {
+          "path": "tracts/2010/32.topojson",
+          "features": 687,
+          "bytes": 656467,
+          "object_name": "tracts",
+          "sha256": "1d2dbc84e4cf7e7c1bec7b84589b06807a528fc3d49a46157c8a2a17840790a1"
+        },
+        "33": {
+          "path": "tracts/2010/33.topojson",
+          "features": 294,
+          "bytes": 292003,
+          "object_name": "tracts",
+          "sha256": "a66e7543236599516859e5b48a8e58912c29bdd5f42b60bdb640840c2e259d3a"
+        },
+        "34": {
+          "path": "tracts/2010/34.topojson",
+          "features": 2004,
+          "bytes": 1447619,
+          "object_name": "tracts",
+          "sha256": "87a706ab8357789861c4ed52b4b22111ae285e8e7ffdaa998cbd05307b40336e"
+        },
+        "35": {
+          "path": "tracts/2010/35.topojson",
+          "features": 499,
+          "bytes": 817227,
+          "object_name": "tracts",
+          "sha256": "4c14395a17064e9cb4edd3e4d59ecb7894a1740b5f151e0045425b34bf81cf9c"
+        },
+        "36": {
+          "path": "tracts/2010/36.topojson",
+          "features": 4906,
+          "bytes": 3569218,
+          "object_name": "tracts",
+          "sha256": "fcfaeacc060336e12a4526eb53bb600d13205eb5e6bcb78b96208402c66999bb"
+        },
+        "37": {
+          "path": "tracts/2010/37.topojson",
+          "features": 2192,
+          "bytes": 3236047,
+          "object_name": "tracts",
+          "sha256": "989b6f3c701b593af23415c022b46ee67687b331b98357688af7e2167442aa87"
+        },
+        "38": {
+          "path": "tracts/2010/38.topojson",
+          "features": 205,
+          "bytes": 402036,
+          "object_name": "tracts",
+          "sha256": "67b8f3154790fc12433651959e6e134eb9c7d5645c09549062032272b9a3ba53"
+        },
+        "39": {
+          "path": "tracts/2010/39.topojson",
+          "features": 2948,
+          "bytes": 2520328,
+          "object_name": "tracts",
+          "sha256": "d6cca76569c54c2474f66e7dae6bd789b0346b81a0b04d57f676044c9ac43d30"
+        },
+        "40": {
+          "path": "tracts/2010/40.topojson",
+          "features": 1046,
+          "bytes": 1362877,
+          "object_name": "tracts",
+          "sha256": "1fd3e37d5626b2316f3709b864a00044d4ab9d6b8463e06d936812fa571ac0f5"
+        },
+        "41": {
+          "path": "tracts/2010/41.topojson",
+          "features": 828,
+          "bytes": 1593806,
+          "object_name": "tracts",
+          "sha256": "d5ba870d3d0bad6a60a5df487e3313d43142a9ef5185b960e7557d729756abcf"
+        },
+        "42": {
+          "path": "tracts/2010/42.topojson",
+          "features": 3217,
+          "bytes": 2800329,
+          "object_name": "tracts",
+          "sha256": "5abbe95545bb8800bbddd97df0de57e98a5d82335f460622d141e1de87aa563a"
+        },
+        "44": {
+          "path": "tracts/2010/44.topojson",
+          "features": 243,
+          "bytes": 210153,
+          "object_name": "tracts",
+          "sha256": "5c465dabd7433d7a3f4125a914df9dca4d9fe6f08facd8fe9876d42247cc912b"
+        },
+        "45": {
+          "path": "tracts/2010/45.topojson",
+          "features": 1103,
+          "bytes": 1751634,
+          "object_name": "tracts",
+          "sha256": "d66c5dec4cb2b7b9dd400003b4847929d0c9151da1bbde88cf32cdd0f827bea9"
+        },
+        "46": {
+          "path": "tracts/2010/46.topojson",
+          "features": 222,
+          "bytes": 428007,
+          "object_name": "tracts",
+          "sha256": "cf64e8ff941073ac71f6c116b707a0a614a2187d1561a4845b7a07137da85f72"
+        },
+        "47": {
+          "path": "tracts/2010/47.topojson",
+          "features": 1497,
+          "bytes": 2402694,
+          "object_name": "tracts",
+          "sha256": "0638dcdafa52671a46968315a3de7ad11fc717010ef6fe0d1627b7da77058ba8"
+        },
+        "48": {
+          "path": "tracts/2010/48.topojson",
+          "features": 5254,
+          "bytes": 6505740,
+          "object_name": "tracts",
+          "sha256": "e6dc0fd892c6038eaa91f1768111cef513ec2121081cd32fbb234f9f7472c359"
+        },
+        "49": {
+          "path": "tracts/2010/49.topojson",
+          "features": 588,
+          "bytes": 884233,
+          "object_name": "tracts",
+          "sha256": "942da9fe9450ae07305efa1bacbe87b4a20fc574c57c4ca9a684c5902043605b"
+        },
+        "50": {
+          "path": "tracts/2010/50.topojson",
+          "features": 184,
+          "bytes": 207244,
+          "object_name": "tracts",
+          "sha256": "d5b0b021b793af115baae968522f23326b0b5a8a9ffae6378b75d4a977a4d741"
+        },
+        "51": {
+          "path": "tracts/2010/51.topojson",
+          "features": 1900,
+          "bytes": 2566893,
+          "object_name": "tracts",
+          "sha256": "5ce10adab133f85d2e0b32b859d26837ea2e20a0879f530c8681963c3bbbab2a"
+        },
+        "53": {
+          "path": "tracts/2010/53.topojson",
+          "features": 1454,
+          "bytes": 2084376,
+          "object_name": "tracts",
+          "sha256": "6d0e688a935c0542feb3c4afe08dc3547c27cd818583a82a9006b8d64f6e4f26"
+        },
+        "54": {
+          "path": "tracts/2010/54.topojson",
+          "features": 484,
+          "bytes": 1224398,
+          "object_name": "tracts",
+          "sha256": "e4775bf3611b275bb8e9ddc64f05eb9ab39f87c2f2eae483cb85e2e3596e401d"
+        },
+        "55": {
+          "path": "tracts/2010/55.topojson",
+          "features": 1396,
+          "bytes": 1676721,
+          "object_name": "tracts",
+          "sha256": "bfce4367e2aa40cdaa7b9a78337f1358efdbbb0870fae42daf0c16337836b6d2"
+        },
+        "56": {
+          "path": "tracts/2010/56.topojson",
+          "features": 132,
+          "bytes": 389379,
+          "object_name": "tracts",
+          "sha256": "18121f8d9b47d0a28dc7aa29601559dd8d9ab2bd7ee9d971d64509de2f775fcf"
+        }
+      },
+      "usda_records": 72531,
+      "display_features": 72831,
+      "usda_without_geometry": 0,
+      "geometry_without_usda": 300
+    },
+    "2025": {
+      "tract_vintage": 2020,
+      "boundary_release": 2020,
+      "states": {
+        "01": {
+          "path": "tracts/2020/01.topojson",
+          "features": 1436,
+          "bytes": 2203629,
+          "object_name": "tracts",
+          "sha256": "237a9f829d3f339d74b6fe998e83e564e14a9fe07e60c6f640cde101a54ba7dc"
+        },
+        "02": {
+          "path": "tracts/2020/02.topojson",
+          "features": 177,
+          "bytes": 3665501,
+          "object_name": "tracts",
+          "sha256": "3f28d6263d0fa68b5a78dbb134cf61ab64776e765707083a1f1e848d96c80bf4"
+        },
+        "04": {
+          "path": "tracts/2020/04.topojson",
+          "features": 1765,
+          "bytes": 1835490,
+          "object_name": "tracts",
+          "sha256": "7ebfc5fd9736016624fb6893a4cd3b4869ce84625aecfdad221ed1a14ddc5d27"
+        },
+        "05": {
+          "path": "tracts/2020/05.topojson",
+          "features": 823,
+          "bytes": 1479656,
+          "object_name": "tracts",
+          "sha256": "ec07d9e5bad11eed417ce3c0a48d91f71499d0fcf85fa6320f8259f3287187ba"
+        },
+        "06": {
+          "path": "tracts/2020/06.topojson",
+          "features": 9109,
+          "bytes": 7296768,
+          "object_name": "tracts",
+          "sha256": "1c4543618529a49ac4c62b1d9a2cf92474a3823484f1192f9bef32517926c514"
+        },
+        "08": {
+          "path": "tracts/2020/08.topojson",
+          "features": 1447,
+          "bytes": 1669979,
+          "object_name": "tracts",
+          "sha256": "aa9a15ef7a7e614ed491c0d569e53ac4e4e6e981ab9b677736b35c4f440d6f96"
+        },
+        "09": {
+          "path": "tracts/2020/09.topojson",
+          "features": 879,
+          "bytes": 674442,
+          "object_name": "tracts",
+          "sha256": "acbaa124726a245f7d49c35666d046efeb9c6f36200d7001511e9eb0a122bbc1"
+        },
+        "10": {
+          "path": "tracts/2020/10.topojson",
+          "features": 259,
+          "bytes": 226934,
+          "object_name": "tracts",
+          "sha256": "676ce467a6ae3fe9dc46a2a98cbc3a03a60e65546c238b7b6553a36f9426002e"
+        },
+        "11": {
+          "path": "tracts/2020/11.topojson",
+          "features": 206,
+          "bytes": 110396,
+          "object_name": "tracts",
+          "sha256": "6a930cddf13a4c0ca67ff0366dcce0c4d9bd13ae8ec0a434410fe93e1dd1bf51"
+        },
+        "12": {
+          "path": "tracts/2020/12.topojson",
+          "features": 5122,
+          "bytes": 3908165,
+          "object_name": "tracts",
+          "sha256": "ddfaa92518152081a4adf8908c8d01155028f2eb1c8f07ee6391c531c59fbdac"
+        },
+        "13": {
+          "path": "tracts/2020/13.topojson",
+          "features": 2791,
+          "bytes": 3182807,
+          "object_name": "tracts",
+          "sha256": "0d9fb9259b916c247d1c00a98ed684b37d4bb808a5f3fc127e131fd7f547a501"
+        },
+        "15": {
+          "path": "tracts/2020/15.topojson",
+          "features": 436,
+          "bytes": 639024,
+          "object_name": "tracts",
+          "sha256": "629881f87e385380d145b62761ec5bc99eabb066e102ce46269c7636fb980c35"
+        },
+        "16": {
+          "path": "tracts/2020/16.topojson",
+          "features": 456,
+          "bytes": 913241,
+          "object_name": "tracts",
+          "sha256": "0435231491501a0a51e592d0e140cbb43f47024e262efebf086c7012dae53f12"
+        },
+        "17": {
+          "path": "tracts/2020/17.topojson",
+          "features": 3263,
+          "bytes": 2675957,
+          "object_name": "tracts",
+          "sha256": "a93d5a6b02fb4c334fc17f2ee0e51fc8b479292137bc27e187c434007d6181de"
+        },
+        "18": {
+          "path": "tracts/2020/18.topojson",
+          "features": 1693,
+          "bytes": 1476899,
+          "object_name": "tracts",
+          "sha256": "058abdf87ddff7bafe2d9f6e36e0c8d743acaac02aae8a888c8ef53c2edaf98f"
+        },
+        "19": {
+          "path": "tracts/2020/19.topojson",
+          "features": 896,
+          "bytes": 941306,
+          "object_name": "tracts",
+          "sha256": "46d57b95465bc643f0ec0fc2e6c1e95fa59981594349ff0e675c441a97414e80"
+        },
+        "20": {
+          "path": "tracts/2020/20.topojson",
+          "features": 829,
+          "bytes": 739902,
+          "object_name": "tracts",
+          "sha256": "a1f2823822b188b967adaef2b86054571dad85e2143e8bfbeefa3e8c3a34cb0e"
+        },
+        "21": {
+          "path": "tracts/2020/21.topojson",
+          "features": 1306,
+          "bytes": 2129384,
+          "object_name": "tracts",
+          "sha256": "f065cb60f3074b8854a7521e0614e9ecd124c3cb57e155f87ffb28b8495f711e"
+        },
+        "22": {
+          "path": "tracts/2020/22.topojson",
+          "features": 1379,
+          "bytes": 1781196,
+          "object_name": "tracts",
+          "sha256": "b8dfb630a796e0b606a4e94c18003fbaf1bc5f85caac56f767a52044d66dd0d8"
+        },
+        "23": {
+          "path": "tracts/2020/23.topojson",
+          "features": 401,
+          "bytes": 567822,
+          "object_name": "tracts",
+          "sha256": "abb25d296394340d5a0680f81b1083061e6b224628f61e52fe4fb26415431390"
+        },
+        "24": {
+          "path": "tracts/2020/24.topojson",
+          "features": 1465,
+          "bytes": 1410256,
+          "object_name": "tracts",
+          "sha256": "630bc4ecbd8b4f3a57ed2e9170a41adee3144398761fd767cc3472c119b641b7"
+        },
+        "25": {
+          "path": "tracts/2020/25.topojson",
+          "features": 1613,
+          "bytes": 1229705,
+          "object_name": "tracts",
+          "sha256": "64f404473a23cfd239bb555e6719250c5b21398a3a7a6980700eaada1ce8d6d6"
+        },
+        "26": {
+          "path": "tracts/2020/26.topojson",
+          "features": 2972,
+          "bytes": 2379553,
+          "object_name": "tracts",
+          "sha256": "e107d743c2585beca479108760f3a7d40ed91f2c03da6cb2d22ed3f28c3bb9ae"
+        },
+        "27": {
+          "path": "tracts/2020/27.topojson",
+          "features": 1502,
+          "bytes": 1583204,
+          "object_name": "tracts",
+          "sha256": "11875a56b4619fa3c14c8675ae5ed47b974c4d2d87fd9f947c08abe5fddfd23b"
+        },
+        "28": {
+          "path": "tracts/2020/28.topojson",
+          "features": 875,
+          "bytes": 1324796,
+          "object_name": "tracts",
+          "sha256": "2b01f5756c696f6e53e023e3530c739f9f4838fde5bdbd76b4dc0e3f41d58f1a"
+        },
+        "29": {
+          "path": "tracts/2020/29.topojson",
+          "features": 1654,
+          "bytes": 2045964,
+          "object_name": "tracts",
+          "sha256": "fbb87d8f351912489e29b623f9b887edaf19c69ecb0518e604e70c44eca4d415"
+        },
+        "30": {
+          "path": "tracts/2020/30.topojson",
+          "features": 319,
+          "bytes": 1094024,
+          "object_name": "tracts",
+          "sha256": "1445e1719d3c9c73f820739440b8402c21750f3e14fbf47d3b0f51d52a7f2f88"
+        },
+        "31": {
+          "path": "tracts/2020/31.topojson",
+          "features": 553,
+          "bytes": 569209,
+          "object_name": "tracts",
+          "sha256": "cc9f528e09e2c6740d5e132e0d795899e91a8aac917aa0808ba8004fed03a220"
+        },
+        "32": {
+          "path": "tracts/2020/32.topojson",
+          "features": 779,
+          "bytes": 692909,
+          "object_name": "tracts",
+          "sha256": "73315c4f93476c12965458a2e20dd27b0baa7fe5992d351819009c500978f08b"
+        },
+        "33": {
+          "path": "tracts/2020/33.topojson",
+          "features": 349,
+          "bytes": 321233,
+          "object_name": "tracts",
+          "sha256": "bd15e47d44d947783cee34fd8c3e4a5c139a22a5ddf85b22b3297d5ce3f12ca2"
+        },
+        "34": {
+          "path": "tracts/2020/34.topojson",
+          "features": 2175,
+          "bytes": 1558614,
+          "object_name": "tracts",
+          "sha256": "98a791006ca6a07143a23684272f5a8574c87e185726b23eaf65724f3ffbc4c2"
+        },
+        "35": {
+          "path": "tracts/2020/35.topojson",
+          "features": 612,
+          "bytes": 934973,
+          "object_name": "tracts",
+          "sha256": "03b39de40cf8eb0329bf9e705d985b9dd720828f43446897719ac1cd416e2a53"
+        },
+        "36": {
+          "path": "tracts/2020/36.topojson",
+          "features": 5394,
+          "bytes": 3826741,
+          "object_name": "tracts",
+          "sha256": "94facbc36da1e38988d69d46be9e7269bbd4b5cb46e1128e2dcbbca1259cf33d"
+        },
+        "37": {
+          "path": "tracts/2020/37.topojson",
+          "features": 2661,
+          "bytes": 3362120,
+          "object_name": "tracts",
+          "sha256": "5050e22abd6f54a3c1a2df94b7a4d08d2073090965bee127decfde30c04ff064"
+        },
+        "38": {
+          "path": "tracts/2020/38.topojson",
+          "features": 228,
+          "bytes": 381939,
+          "object_name": "tracts",
+          "sha256": "5abb96de70b507c218ae378db4d18c3a19ed022e648d74e0fa818b9dbb7b8597"
+        },
+        "39": {
+          "path": "tracts/2020/39.topojson",
+          "features": 3162,
+          "bytes": 2622762,
+          "object_name": "tracts",
+          "sha256": "1ad39c201f90c023b2fe2583ab581ca1ddba76a632b451ef0e3a55afb958425c"
+        },
+        "40": {
+          "path": "tracts/2020/40.topojson",
+          "features": 1205,
+          "bytes": 1345928,
+          "object_name": "tracts",
+          "sha256": "a297e56a128acfdc3599d36ab65d79f2d7d4f74b63770656dca326f4b37a9f64"
+        },
+        "41": {
+          "path": "tracts/2020/41.topojson",
+          "features": 994,
+          "bytes": 1585730,
+          "object_name": "tracts",
+          "sha256": "0e8ab2888dc3c0de450b490d992b55aa53aba27bb247e6b24b829a8df3406e78"
+        },
+        "42": {
+          "path": "tracts/2020/42.topojson",
+          "features": 3445,
+          "bytes": 2933944,
+          "object_name": "tracts",
+          "sha256": "c058d2e9abf9ba0aaa952a5c6f3168f9c564539333e34691af6732e7d0c30f08"
+        },
+        "44": {
+          "path": "tracts/2020/44.topojson",
+          "features": 247,
+          "bytes": 211482,
+          "object_name": "tracts",
+          "sha256": "70aa36c0702cb5328b17038bfbe49e8f44ed72b2b9d847f10d708abd0dbcac5a"
+        },
+        "45": {
+          "path": "tracts/2020/45.topojson",
+          "features": 1317,
+          "bytes": 1786797,
+          "object_name": "tracts",
+          "sha256": "8f6eb0fa4056660c216cc1894be18ab309054e079c9aff14f628b4fb6680ca6d"
+        },
+        "46": {
+          "path": "tracts/2020/46.topojson",
+          "features": 242,
+          "bytes": 403826,
+          "object_name": "tracts",
+          "sha256": "e392117f0a09893496facdd697180b7d18719a913f962fa13b492d979b7af8b1"
+        },
+        "47": {
+          "path": "tracts/2020/47.topojson",
+          "features": 1701,
+          "bytes": 2333112,
+          "object_name": "tracts",
+          "sha256": "5bc27cf6ddb711420441f3994a7d756a4d2d5e7aaf21842d5fc9518cb17577fe"
+        },
+        "48": {
+          "path": "tracts/2020/48.topojson",
+          "features": 6884,
+          "bytes": 6871253,
+          "object_name": "tracts",
+          "sha256": "39dbe717099698a3d1944320eb846062670c974cc5a58f7f996465e01ab24304"
+        },
+        "49": {
+          "path": "tracts/2020/49.topojson",
+          "features": 716,
+          "bytes": 935891,
+          "object_name": "tracts",
+          "sha256": "778bf106bbe143ed3e9faab01e29e6e0275da99cc8381a9406ac99c226be537b"
+        },
+        "50": {
+          "path": "tracts/2020/50.topojson",
+          "features": 193,
+          "bytes": 195648,
+          "object_name": "tracts",
+          "sha256": "15bc7a10b471cb60cd9b0348934cb7bfc567ea13f22d212fdc6b1b74e57612ae"
+        },
+        "51": {
+          "path": "tracts/2020/51.topojson",
+          "features": 2186,
+          "bytes": 2578205,
+          "object_name": "tracts",
+          "sha256": "9fae83a5e9f10ebf670740e66af0c7cb6e21e9e78617a7f4346030c37cb2c44a"
+        },
+        "53": {
+          "path": "tracts/2020/53.topojson",
+          "features": 1772,
+          "bytes": 2245108,
+          "object_name": "tracts",
+          "sha256": "f63711d694120af6219e7415410353fdf88d063dadda30a4a9c678ea7b9ec550"
+        },
+        "54": {
+          "path": "tracts/2020/54.topojson",
+          "features": 546,
+          "bytes": 1163931,
+          "object_name": "tracts",
+          "sha256": "e1a27332b99f1f89c7c594254e08beadad79e72105471b4caf01a2f906ee9f28"
+        },
+        "55": {
+          "path": "tracts/2020/55.topojson",
+          "features": 1528,
+          "bytes": 1675946,
+          "object_name": "tracts",
+          "sha256": "87e2eaa87fa60953d2e92b258077eb4d3a06475c0fa4e9a23b1e400cf3485dd9"
+        },
+        "56": {
+          "path": "tracts/2020/56.topojson",
+          "features": 160,
+          "bytes": 428114,
+          "object_name": "tracts",
+          "sha256": "a6ec8c18e4f3168ad21971eb4803996fc9e589383a5cb386d70a78cb41a883ea"
+        }
+      },
+      "usda_records": 84119,
+      "display_features": 84122,
+      "usda_without_geometry": 0,
+      "geometry_without_usda": 3
+    }
+  },
+  "boundary_product": "Census Cartographic Boundary 1:500,000",
+  "additional_simplification": false,
+  "encoding": "TopoJSON, no quantization or additional simplification; shared arcs with D3 clockwise exterior rings; geometric equality verified",
+  "state_boundary_release": 2020,
+  "scope": "50 states and DC; all features present in the selected cartographic files, including features without USDA records. Cartographic files may omit offshore/small areas and are not full-resolution TIGER/Line.",
+  "join_contract": {
+    "geoid": "11-digit string, never numeric; feature.properties.geoid is canonical",
+    "state_fips": "2-digit string; geoid[:2]",
+    "existing_demo_tractId": "Map tractId to geoid; normalize both sides",
+    "tract_object_name": "tracts",
+    "has_usda_data": "Source-record presence only, not a risk classification",
+    "unclassified": "Missing model result must not default to low risk",
+    "state_navigation": "Use states.geojson and load the selected state path from years[year].states[state_fips]",
+    "projection": "Unprojected WGS84 longitude/latitude; project once in the frontend",
+    "data_year_to_framework": {
+      "2019": 2010,
+      "2025": 2020
+    }
+  },
+  "validation": {
+    "2019": {
+      "usda_unique_ids": 72531,
+      "matched": 72531,
+      "display_features": 72831,
+      "no_usda_record": 300,
+      "states": 51,
+      "invalid_geometry": 0,
+      "missing_geometry": 0
+    },
+    "2025": {
+      "usda_unique_ids": 84119,
+      "matched": 84119,
+      "display_features": 84122,
+      "no_usda_record": 3,
+      "states": 51,
+      "invalid_geometry": 0,
+      "missing_geometry": 0
+    },
+    "raw_files_unchanged": true
+  }
+}
