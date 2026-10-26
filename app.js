@@ -1,17 +1,17 @@
 // Application State
 const state = {
-    selectedYear: "2025",
+    selectedYear: "2019",
     currentView: "NATIONAL", // "NATIONAL" or "STATE"
     selectedStateCode: null,
     selectedStateName: null,
     datasets: {
         states: [],
-        counties: [],
         tracts: []
     },
     geoJson: {
         states: null,
-        counties: null
+        tracts2019: null, // Holds 2010 tracts from 2019 analysis
+        tracts2025: null  // Holds 2020 tracts from 2025 analysis
     }
 };
 
@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initApp() {
+    d3.select("#yearSelect").property("value", state.selectedYear);
+    
     setupEventListeners();
     loadAllData();
 }
@@ -42,35 +44,31 @@ function setupEventListeners() {
     });
 }
 
-/**
- * Data Loading Strategy using D3 v5 Promises
- */
 function loadAllData() {
-    // Load CSVs from /data folder and external TopoJSON for US maps
     Promise.all([
         d3.csv("data/us_states_risk_2019_2025.csv"),
-        d3.csv("data/us_counties_risk_2019_2025.csv"),
         d3.csv("data/us_tracts_risk_2019_2025.csv"),
-        d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
-        d3.json("data/tl_2010_TopoJSON.json")
-    ]).then(([statesCsv, countiesCsv, tractsCsv, usTopoJson, tractsTopoJson]) => {
+        d3.json("data/geography/states.geojson"),
+        d3.json("data/tracts_2010_topoJSON.json"),
+        d3.json("data/tracts_2020_topoJSON.json")
+    ]).then(([statesCsv, tractsCsv, statesGeoJson, tracts2010TopoJson, tracts2020TopoJson]) => {
         state.datasets.states = parseData(statesCsv);
-        state.datasets.counties = parseData(countiesCsv);
         state.datasets.tracts = parseData(tractsCsv);
 
-        // Convert TopoJSON to GeoJSON
-        state.geoJson.states = topojson.feature(usTopoJson, usTopoJson.objects.states);
+        state.geoJson.states = statesGeoJson;
 
-        // Convert Tract TopoJSON to GeoJSON
-        // Note: Replace "tracts" with the exact object key in your TopoJSON file (e.g., tractsTopoJson.objects.tracts or objects.census_tracts)
-        const tractObjectKey = Object.keys(tractsTopoJson.objects)[0];
-        state.geoJson.tracts = topojson.feature(tractsTopoJson, tractsTopoJson.objects[tractObjectKey]);
+        // Convert 2019 TopoJSON
+        const key2019 = Object.keys(tracts2010TopoJson.objects)[0];
+        state.geoJson.tracts2019 = topojson.feature(tracts2010TopoJson, tracts2010TopoJson.objects[key2019]);
+
+        // Convert 2025 TopoJSON
+        const key2025 = Object.keys(tracts2020TopoJson.objects)[0];
+        state.geoJson.tracts2025 = topojson.feature(tracts2020TopoJson, tracts2020TopoJson.objects[key2025]);
 
         // Initialize Map Rendering
         renderMap();
     }).catch(err => {
         console.warn("Loading fallback/simulated data due to missing local CSV server setup:", err);
-        loadFallbackSimulatedData();
     });
 }
 
@@ -80,7 +78,7 @@ function parseData(data) {
         // Force the ID to a string and pad to 11 characters. 
         // Note: USDA FARA datasets often use "CensusTract" as the column name. 
         // Adjust the fallback fields below to match your exact CSV column header.
-        tractId: String(d.tractId || d.GEOID10 || d.CensusTract).padStart(11, '0'),
+        tractId: String(d.tractId || d.geoid || d.CensusTract).padStart(11, '0'),
 
         highRiskCount: +d.highRiskCount || 0,
         midRiskCount: +d.midRiskCount || 0,
@@ -117,12 +115,12 @@ function renderNationalMap(svg, width, height) {
     d3.select("#viewSubtitle").text("US National Level • State Risk Aggregation");
     d3.select("#mapTitle").text(`United States Food Desert Risk (${state.selectedYear})`);
     d3.select("#backBtn").classed("hidden", true);
-    d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into County & Tract view.");
+    d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into State & Tract view.");
 
     const projection = d3.geoAlbersUsa()
         .fitSize([width, height], state.geoJson.states);
 
-    const path = d3.geoPath().projection(projection);    
+    const path = d3.geoPath().projection(projection);
 
     // Filter state metrics by selected year
     const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
@@ -130,9 +128,10 @@ function renderNationalMap(svg, width, height) {
 
     // Configure Tooltip
     tip.html(d => {
-        const info = dataMap.get(d.id) || getSimulatedStateMetric(d.id);
+        const fips = d.properties.state_fips;
+        const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
         return `
-            <h4>${d.properties.name} (${state.selectedYear})</h4>
+            <h4>${d.properties.state_name} (${state.selectedYear})</h4>
             <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
             <div class="row"><span>Mid Risk Tracts:</span> <strong>${info.midRiskCount}</strong></div>
             <div class="row"><span>Low Risk Tracts:</span> <strong>${info.lowRiskCount}</strong></div>
@@ -154,14 +153,15 @@ function renderNationalMap(svg, width, height) {
         .attr("class", "feature-path")
         .attr("d", path)
         .attr("fill", d => {
-            const info = dataMap.get(d.id) || getSimulatedStateMetric(d.id);
+            const fips = d.properties.state_fips;
+            const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
             return calculateDominantRiskColor(info);
         })
         .on("mouseover", tip.show)
         .on("mouseout", tip.hide)
         .on("click", d => {
             tip.hide();
-            drillDownToState(d.id, d.properties.name);
+            drillDownToState(d.properties.state_fips, d.properties.state_name);
         });
 
     updateSidebarNational(yearData);
@@ -187,16 +187,40 @@ function renderStateMap(svg, width, height) {
         d => d.year === state.selectedYear && d.stateCode === state.selectedStateCode
     );
 
+    // Select the correct geometry based on the dropdown year
+    const activeGeoJson = state.selectedYear === "2019"
+        ? state.geoJson.tracts2019
+        : state.geoJson.tracts2025;
+
     // Filter loaded TopoJSON tracts matching the selected state FIPS code
     const selectedStateFips = state.selectedStateCode.toString().padStart(2, '0');
-    const stateTractFeatures = state.geoJson.tracts.features.filter(feature => {
-        const tractId = feature.id || feature.properties.GEOID10;
+
+    // Map over activeGeoJson instead of state.geoJson.tracts
+    const stateTractFeatures = activeGeoJson.features.filter(feature => {
+        const tractId = feature.id || feature.properties.geoid;
         if (!tractId) return false;
 
-        // Ensure the tract ID is strictly 11 characters (adds leading zero if missing)
         const tractIdStr = String(tractId).padStart(11, '0');
         return tractIdStr.startsWith(selectedStateFips);
     });
+
+    /*
+    console.log("--- TRACT YEAR RENDER DEBUG ---");
+    console.log("1. Selected Year Dropdown:", state.selectedYear);
+    console.log("2. Total Features in Active GeoJSON:", activeGeoJson.features.length);
+    console.log("3. Filtered State Tracts Count:", stateTractFeatures.length);
+
+    if (stateTractFeatures.length > 0) {
+        const sampleProps = stateTractFeatures[0].properties;
+        console.log("4. Sample Tract Properties:", sampleProps);
+
+        // If your 2019 and 2025 files have different metadata (like tract_vintage), this proves which file loaded
+        if (sampleProps.tract_vintage) {
+            console.log("5. Verified Tract Vintage:", sampleProps.tract_vintage);
+        }
+    }
+    console.log("-------------------------------");
+    */
 
     // Build a map lookup for CSV risk data by tractId
     const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
@@ -208,25 +232,8 @@ function renderStateMap(svg, width, height) {
         .fitSize([width, height], featureCollection);
     const path = d3.geoPath().projection(projection);
 
-    /*
-    console.log("--- MAP DEBUG START ---");
-    console.log("1. State Code passed to filter:", selectedStateFips);
-    console.log("2. Total Tracts in TopoJSON:", state.geoJson.tracts.features.length);
-    console.log("3. Filtered State Tracts:", stateTractFeatures.length);
-    console.log(state.geoJson.tracts.features[0].properties.STATEFP10);
-    console.log(state.geoJson.tracts.features[0].properties.GEOID10);
-
-    if (stateTractFeatures.length > 0) {
-        console.log("4. Sample Tract Properties:", stateTractFeatures[0].properties);
-        console.log("5. SVG Path Generator Output:", path(stateTractFeatures[0]));
-    } else {
-        console.error("FAILURE: No tracts found for this state code. Check TopoJSON file contents.");
-    }
-    console.log("--- MAP DEBUG END ---");
-    */
-
     tip.html(d => {
-        const tractId = d.id || d.properties.GEOID10;
+        const tractId = d.id || d.properties.geoid;
         const info = riskDataMap.get(tractId) || { riskCategory: "Low Risk", score: "N/A" };
         return `
         <h4>Tract ${tractId} (${state.selectedYear})</h4>
@@ -243,7 +250,7 @@ function renderStateMap(svg, width, height) {
         .attr("class", "feature-path tract-path")
         .attr("d", path)
         .attr("fill", d => {
-            const tractId = d.id || d.properties.GEOID10;
+            const tractId = d.id || d.properties.geoid;
             const info = riskDataMap.get(tractId);
             if (!info) return "#10b981";
             if (info.riskCategory === "High Risk") return "#dc2626";
@@ -333,14 +340,6 @@ function updateSidebarState(data) {
     d3.select("#lowestRiskArea").text("Tract 0102.00");
 }
 
-// Simulated data fallback if local CSVs are not hosted via web server
-function loadFallbackSimulatedData() {
-    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(usTopoJson => {
-        state.geoJson.states = topojson.feature(usTopoJson, usTopoJson.objects.states);
-        renderMap();
-    });
-}
-
 function getSimulatedStateMetric(id) {
     return {
         highRiskCount: Math.floor(Math.random() * 15) + 2,
@@ -369,7 +368,7 @@ let zoomBehavior;
 function setupZoomControls(svg, mapGroup) {
     // 1. Create the D3 zoom behavior
     zoomBehavior = d3.zoom()
-        .scaleExtent([0.5, 8]) 
+        .scaleExtent([0.5, 8])
         .on("zoom", function () {
             // Apply zoom/pan transform to the map group element
             mapGroup.attr("transform", d3.event.transform);
