@@ -1,0 +1,65 @@
+{
+  "retrieved_date": "2026-10-24",
+  "files": [
+    {
+      "url": "https://www2.census.gov/geo/tiger/GENZ2019/shp/cb_2019_us_tract_500k.zip",
+      "file": "cb_2019_us_tract_500k.zip",
+      "bytes": 52182570,
+      "sha256": "e4dd4c1b285697faedfe16fda96711b38fbe76a9cbe3a537a372dbfe373a5680"
+    },
+    {
+      "url": "https://www2.census.gov/geo/tiger/GENZ2020/shp/cb_2020_us_tract_500k.zip",
+      "file": "cb_2020_us_tract_500k.zip",
+      "bytes": 62350644,
+      "sha256": "2375fd892078592cb6ede13ec81821923ce575f6d801b00c236bfe1521901394"
+    },
+    {
+      "url": "https://www2.census.gov/geo/tiger/GENZ2020/shp/cb_2020_us_state_500k.zip",
+      "file": "cb_2020_us_state_500k.zip",
+      "bytes": 3548589,
+      "sha256": "dcc877984a3e4d59c1ee8d068b6681517c545e0c1827b7e78a7c2c7cbb167da6"
+    }
+  ],
+  "usda_sources": [
+    {
+      "file": "2019_Food_Access_Research_Atlas_Data/Food Access Research Atlas.csv",
+      "encoding": "utf-8-sig",
+      "sha256": "00a721633e5ab59f123273ca7d2d10fa191641631bf67884486e088b6b25d2ee",
+      "rows": 72531,
+      "unique": 72531,
+      "padded": 13645,
+      "issues": 0,
+      "states": 51
+    },
+    {
+      "file": "2025-sram-fara-data/SRAM General Tract Characteristics Data.csv",
+      "encoding": "cp1252",
+      "sha256": "0fa5e5beabda30637f4dea8c149abd3e650ab83a1c6378278292db0b2ba4a134",
+      "rows": 84119,
+      "unique": 84119,
+      "padded": 15636,
+      "issues": 0,
+      "states": 51
+    },
+    {
+      "file": "2025-sram-fara-data/SRAM Straight Line Distance Data.csv",
+      "encoding": "cp1252",
+      "sha256": "d966c5550b7f722e26536a25fc71f0f63cf9fdb1fa427a1f79c42fef42eb3551",
+      "rows": 84119,
+      "unique": 84119,
+      "padded": 0,
+      "issues": 0,
+      "states": 51
+    },
+    {
+      "file": "2025-sram-fara-data/SRAM Driving Distance Data.csv",
+      "encoding": "cp1252",
+      "sha256": "f33d9ca4fff293e8bbd86222e7c0e1b698a69b916283bf6ff832c283b843ab71",
+      "rows": 84119,
+      "unique": 84119,
+      "padded": 0,
+      "issues": 0,
+      "states": 51
+    }
+  ]
+}
