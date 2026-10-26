@@ -1,6 +1,6 @@
 // Application State
 const state = {
-    selectedYear: "2025",
+    selectedYear: "2019",
     currentView: "NATIONAL", // "NATIONAL" or "STATE"
     selectedStateCode: null,
     selectedStateName: null,
@@ -9,7 +9,9 @@ const state = {
         tracts: []
     },
     geoJson: {
-        states: null
+        states: null,
+        tracts2019: null, // Holds 2010 tracts from 2019 analysis
+        tracts2025: null  // Holds 2020 tracts from 2025 analysis
     }
 };
 
@@ -29,6 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initApp() {
+    d3.select("#yearSelect").property("value", state.selectedYear);
+    
     setupEventListeners();
     loadAllData();
 }
@@ -45,17 +49,21 @@ function loadAllData() {
         d3.csv("data/us_states_risk_2019_2025.csv"),
         d3.csv("data/us_tracts_risk_2019_2025.csv"),
         d3.json("data/geography/states.geojson"),
-        d3.json("data/tracts_2010_topoJSON.json")
-    ]).then(([statesCsv, tractsCsv, statesGeoJson, tractsTopoJson]) => {
+        d3.json("data/tracts_2010_topoJSON.json"),
+        d3.json("data/tracts_2020_topoJSON.json")
+    ]).then(([statesCsv, tractsCsv, statesGeoJson, tracts2010TopoJson, tracts2020TopoJson]) => {
         state.datasets.states = parseData(statesCsv);
         state.datasets.tracts = parseData(tractsCsv);
 
         state.geoJson.states = statesGeoJson;
 
-        // Convert Tract TopoJSON to GeoJSON
-        // Note: Replace "tracts" with the exact object key in your TopoJSON file (e.g., tractsTopoJson.objects.tracts or objects.census_tracts)
-        const tractObjectKey = Object.keys(tractsTopoJson.objects)[0];
-        state.geoJson.tracts = topojson.feature(tractsTopoJson, tractsTopoJson.objects[tractObjectKey]);
+        // Convert 2019 TopoJSON
+        const key2019 = Object.keys(tracts2010TopoJson.objects)[0];
+        state.geoJson.tracts2019 = topojson.feature(tracts2010TopoJson, tracts2010TopoJson.objects[key2019]);
+
+        // Convert 2025 TopoJSON
+        const key2025 = Object.keys(tracts2020TopoJson.objects)[0];
+        state.geoJson.tracts2025 = topojson.feature(tracts2020TopoJson, tracts2020TopoJson.objects[key2025]);
 
         // Initialize Map Rendering
         renderMap();
@@ -123,7 +131,7 @@ function renderNationalMap(svg, width, height) {
         const fips = d.properties.state_fips;
         const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
         return `
-            <h4>${d.properties.name} (${state.selectedYear})</h4>
+            <h4>${d.properties.state_name} (${state.selectedYear})</h4>
             <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
             <div class="row"><span>Mid Risk Tracts:</span> <strong>${info.midRiskCount}</strong></div>
             <div class="row"><span>Low Risk Tracts:</span> <strong>${info.lowRiskCount}</strong></div>
@@ -179,16 +187,40 @@ function renderStateMap(svg, width, height) {
         d => d.year === state.selectedYear && d.stateCode === state.selectedStateCode
     );
 
+    // Select the correct geometry based on the dropdown year
+    const activeGeoJson = state.selectedYear === "2019"
+        ? state.geoJson.tracts2019
+        : state.geoJson.tracts2025;
+
     // Filter loaded TopoJSON tracts matching the selected state FIPS code
     const selectedStateFips = state.selectedStateCode.toString().padStart(2, '0');
-    const stateTractFeatures = state.geoJson.tracts.features.filter(feature => {
+
+    // Map over activeGeoJson instead of state.geoJson.tracts
+    const stateTractFeatures = activeGeoJson.features.filter(feature => {
         const tractId = feature.id || feature.properties.geoid;
         if (!tractId) return false;
 
-        // Ensure the tract ID is strictly 11 characters (adds leading zero if missing)
         const tractIdStr = String(tractId).padStart(11, '0');
         return tractIdStr.startsWith(selectedStateFips);
     });
+
+    /*
+    console.log("--- TRACT YEAR RENDER DEBUG ---");
+    console.log("1. Selected Year Dropdown:", state.selectedYear);
+    console.log("2. Total Features in Active GeoJSON:", activeGeoJson.features.length);
+    console.log("3. Filtered State Tracts Count:", stateTractFeatures.length);
+
+    if (stateTractFeatures.length > 0) {
+        const sampleProps = stateTractFeatures[0].properties;
+        console.log("4. Sample Tract Properties:", sampleProps);
+
+        // If your 2019 and 2025 files have different metadata (like tract_vintage), this proves which file loaded
+        if (sampleProps.tract_vintage) {
+            console.log("5. Verified Tract Vintage:", sampleProps.tract_vintage);
+        }
+    }
+    console.log("-------------------------------");
+    */
 
     // Build a map lookup for CSV risk data by tractId
     const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
