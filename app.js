@@ -6,12 +6,10 @@ const state = {
     selectedStateName: null,
     datasets: {
         states: [],
-        counties: [],
         tracts: []
     },
     geoJson: {
-        states: null,
-        counties: null
+        states: null
     }
 };
 
@@ -42,24 +40,17 @@ function setupEventListeners() {
     });
 }
 
-/**
- * Data Loading Strategy using D3 v5 Promises
- */
 function loadAllData() {
-    // Load CSVs from /data folder and external TopoJSON for US maps
     Promise.all([
         d3.csv("data/us_states_risk_2019_2025.csv"),
-        d3.csv("data/us_counties_risk_2019_2025.csv"),
         d3.csv("data/us_tracts_risk_2019_2025.csv"),
-        d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
+        d3.json("data/geography/states.geojson"),
         d3.json("data/tl_2010_TopoJSON.json")
-    ]).then(([statesCsv, countiesCsv, tractsCsv, usTopoJson, tractsTopoJson]) => {
+    ]).then(([statesCsv, tractsCsv, statesGeoJson, tractsTopoJson]) => {
         state.datasets.states = parseData(statesCsv);
-        state.datasets.counties = parseData(countiesCsv);
         state.datasets.tracts = parseData(tractsCsv);
 
-        // Convert TopoJSON to GeoJSON
-        state.geoJson.states = topojson.feature(usTopoJson, usTopoJson.objects.states);
+        state.geoJson.states = statesGeoJson;
 
         // Convert Tract TopoJSON to GeoJSON
         // Note: Replace "tracts" with the exact object key in your TopoJSON file (e.g., tractsTopoJson.objects.tracts or objects.census_tracts)
@@ -70,7 +61,6 @@ function loadAllData() {
         renderMap();
     }).catch(err => {
         console.warn("Loading fallback/simulated data due to missing local CSV server setup:", err);
-        loadFallbackSimulatedData();
     });
 }
 
@@ -117,12 +107,12 @@ function renderNationalMap(svg, width, height) {
     d3.select("#viewSubtitle").text("US National Level • State Risk Aggregation");
     d3.select("#mapTitle").text(`United States Food Desert Risk (${state.selectedYear})`);
     d3.select("#backBtn").classed("hidden", true);
-    d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into County & Tract view.");
+    d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into State & Tract view.");
 
     const projection = d3.geoAlbersUsa()
         .fitSize([width, height], state.geoJson.states);
 
-    const path = d3.geoPath().projection(projection);    
+    const path = d3.geoPath().projection(projection);
 
     // Filter state metrics by selected year
     const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
@@ -130,7 +120,8 @@ function renderNationalMap(svg, width, height) {
 
     // Configure Tooltip
     tip.html(d => {
-        const info = dataMap.get(d.id) || getSimulatedStateMetric(d.id);
+        const fips = d.properties.state_fips;
+        const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
         return `
             <h4>${d.properties.name} (${state.selectedYear})</h4>
             <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
@@ -154,14 +145,15 @@ function renderNationalMap(svg, width, height) {
         .attr("class", "feature-path")
         .attr("d", path)
         .attr("fill", d => {
-            const info = dataMap.get(d.id) || getSimulatedStateMetric(d.id);
+            const fips = d.properties.state_fips;
+            const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
             return calculateDominantRiskColor(info);
         })
         .on("mouseover", tip.show)
         .on("mouseout", tip.hide)
         .on("click", d => {
             tip.hide();
-            drillDownToState(d.id, d.properties.name);
+            drillDownToState(d.properties.state_fips, d.properties.state_name);
         });
 
     updateSidebarNational(yearData);
@@ -333,14 +325,6 @@ function updateSidebarState(data) {
     d3.select("#lowestRiskArea").text("Tract 0102.00");
 }
 
-// Simulated data fallback if local CSVs are not hosted via web server
-function loadFallbackSimulatedData() {
-    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(usTopoJson => {
-        state.geoJson.states = topojson.feature(usTopoJson, usTopoJson.objects.states);
-        renderMap();
-    });
-}
-
 function getSimulatedStateMetric(id) {
     return {
         highRiskCount: Math.floor(Math.random() * 15) + 2,
@@ -369,7 +353,7 @@ let zoomBehavior;
 function setupZoomControls(svg, mapGroup) {
     // 1. Create the D3 zoom behavior
     zoomBehavior = d3.zoom()
-        .scaleExtent([0.5, 8]) 
+        .scaleExtent([0.5, 8])
         .on("zoom", function () {
             // Apply zoom/pan transform to the map group element
             mapGroup.attr("transform", d3.event.transform);
