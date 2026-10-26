@@ -45,7 +45,7 @@ function loadAllData() {
         d3.csv("data/us_states_risk_2019_2025.csv"),
         d3.csv("data/us_tracts_risk_2019_2025.csv"),
         d3.json("data/geography/states.geojson"),
-        d3.json("data/tl_2010_TopoJSON.json")
+        d3.json("data/tracts_2010_topoJSON.json")
     ]).then(([statesCsv, tractsCsv, statesGeoJson, tractsTopoJson]) => {
         state.datasets.states = parseData(statesCsv);
         state.datasets.tracts = parseData(tractsCsv);
@@ -70,7 +70,7 @@ function parseData(data) {
         // Force the ID to a string and pad to 11 characters. 
         // Note: USDA FARA datasets often use "CensusTract" as the column name. 
         // Adjust the fallback fields below to match your exact CSV column header.
-        tractId: String(d.tractId || d.GEOID10 || d.CensusTract).padStart(11, '0'),
+        tractId: String(d.tractId || d.geoid || d.CensusTract).padStart(11, '0'),
 
         highRiskCount: +d.highRiskCount || 0,
         midRiskCount: +d.midRiskCount || 0,
@@ -182,7 +182,7 @@ function renderStateMap(svg, width, height) {
     // Filter loaded TopoJSON tracts matching the selected state FIPS code
     const selectedStateFips = state.selectedStateCode.toString().padStart(2, '0');
     const stateTractFeatures = state.geoJson.tracts.features.filter(feature => {
-        const tractId = feature.id || feature.properties.GEOID10;
+        const tractId = feature.id || feature.properties.geoid;
         if (!tractId) return false;
 
         // Ensure the tract ID is strictly 11 characters (adds leading zero if missing)
@@ -200,25 +200,8 @@ function renderStateMap(svg, width, height) {
         .fitSize([width, height], featureCollection);
     const path = d3.geoPath().projection(projection);
 
-    /*
-    console.log("--- MAP DEBUG START ---");
-    console.log("1. State Code passed to filter:", selectedStateFips);
-    console.log("2. Total Tracts in TopoJSON:", state.geoJson.tracts.features.length);
-    console.log("3. Filtered State Tracts:", stateTractFeatures.length);
-    console.log(state.geoJson.tracts.features[0].properties.STATEFP10);
-    console.log(state.geoJson.tracts.features[0].properties.GEOID10);
-
-    if (stateTractFeatures.length > 0) {
-        console.log("4. Sample Tract Properties:", stateTractFeatures[0].properties);
-        console.log("5. SVG Path Generator Output:", path(stateTractFeatures[0]));
-    } else {
-        console.error("FAILURE: No tracts found for this state code. Check TopoJSON file contents.");
-    }
-    console.log("--- MAP DEBUG END ---");
-    */
-
     tip.html(d => {
-        const tractId = d.id || d.properties.GEOID10;
+        const tractId = d.id || d.properties.geoid;
         const info = riskDataMap.get(tractId) || { riskCategory: "Low Risk", score: "N/A" };
         return `
         <h4>Tract ${tractId} (${state.selectedYear})</h4>
@@ -235,7 +218,7 @@ function renderStateMap(svg, width, height) {
         .attr("class", "feature-path tract-path")
         .attr("d", path)
         .attr("fill", d => {
-            const tractId = d.id || d.properties.GEOID10;
+            const tractId = d.id || d.properties.geoid;
             const info = riskDataMap.get(tractId);
             if (!info) return "#10b981";
             if (info.riskCategory === "High Risk") return "#dc2626";
