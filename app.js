@@ -4,6 +4,7 @@ const state = {
     currentView: "NATIONAL", // "NATIONAL" or "STATE"
     selectedStateCode: null,
     selectedStateName: null,
+    isNewMapView: true,
     datasets: {
         states: [],
         tracts: []
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function initApp() {
     d3.select("#yearSelect").property("value", state.selectedYear);
-    
+
     setupEventListeners();
     loadAllData();
 }
@@ -117,8 +118,14 @@ function renderNationalMap(svg, width, height) {
     d3.select("#backBtn").classed("hidden", true);
     d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into State & Tract view.");
 
+    const mapGroup = svg.append("g").attr("class", "map-group");
+    setupZoomControls(svg, mapGroup);
+
     const projection = d3.geoAlbersUsa()
-        .fitSize([width, height], state.geoJson.states);
+        .fitExtent([
+            [width * 0.15, height * 0.15],
+            [width * 0.85, height * 0.85]
+        ], state.geoJson.states);
 
     const path = d3.geoPath().projection(projection);
 
@@ -142,9 +149,6 @@ function renderNationalMap(svg, width, height) {
         `;
     });
 
-    const mapGroup = svg.append("g").attr("class", "map-group");
-    setupZoomControls(svg, mapGroup);
-
     // Draw States
     mapGroup.selectAll("path")
         .data(state.geoJson.states.features)
@@ -157,12 +161,17 @@ function renderNationalMap(svg, width, height) {
             const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
             return calculateDominantRiskColor(info);
         })
+        .attr("stroke", "#ffffff")
+        .attr("stroke-width", 0.1)
+        .style("vector-effect", "non-scaling-stroke")        
         .on("mouseover", tip.show)
         .on("mouseout", tip.hide)
         .on("click", d => {
             tip.hide();
             drillDownToState(d.properties.state_fips, d.properties.state_name);
         });
+
+    svg.call(zoomBehavior.transform, d3.zoomIdentity);
 
     updateSidebarNational(yearData);
 }
@@ -259,8 +268,19 @@ function renderStateMap(svg, width, height) {
         })
         .attr("stroke", "#ffffff")
         .attr("stroke-width", 0.001)
+        .style("vector-effect", "non-scaling-stroke")
         .on("mouseover", tip.show)
         .on("mouseout", tip.hide);
+
+    if (state.isNewMapView) {
+        // It's a new map view (initial load or clicking a state) -> Reset to default
+        svg.call(zoomBehavior.transform, d3.zoomIdentity);
+        state.isNewMapView = false; // Toggle off until the next map switch
+    } else {
+        // It's just a year dropdown change -> Preserve the exact current zoom & pan
+        const currentZoom = d3.zoomTransform(svg.node());
+        svg.call(zoomBehavior.transform, currentZoom);
+    }
 
     updateSidebarState(yearTracts);
 }
@@ -272,6 +292,7 @@ function drillDownToState(stateCode, stateName) {
     state.currentView = "STATE";
     state.selectedStateCode = stateCode;
     state.selectedStateName = stateName;
+    state.isNewMapView = true;
     renderMap();
 }
 
@@ -279,6 +300,7 @@ function resetToNationalView() {
     state.currentView = "NATIONAL";
     state.selectedStateCode = null;
     state.selectedStateName = null;
+    state.isNewMapView = true;
     renderMap();
 }
 
@@ -368,7 +390,7 @@ let zoomBehavior;
 function setupZoomControls(svg, mapGroup) {
     // 1. Create the D3 zoom behavior
     zoomBehavior = d3.zoom()
-        .scaleExtent([0.5, 8])
+        .scaleExtent([0.5, 10])
         .on("zoom", function () {
             // Apply zoom/pan transform to the map group element
             mapGroup.attr("transform", d3.event.transform);
