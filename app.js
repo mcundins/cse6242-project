@@ -46,17 +46,38 @@ function setupEventListeners() {
 }
 
 function loadAllData() {
+    const parseSimplifiedTracts = (csvArray, yearLabel) => {
+        return csvArray.map(d => {
+            return {
+                tractId: String(d.tract_id).trim().padStart(11, '0'),
+                stateCode: String(d.state).trim().padStart(2, '0'),
+                year: yearLabel,
+                riskLevel: String(d.risk).trim().toLowerCase()
+            };
+        });
+    };
+
     Promise.all([
         d3.csv("data/us_states_risk_2019_2025.csv"),
-        d3.csv("data/us_tracts_risk_2019_2025.csv"),
+
+        //data with predictions
+        d3.csv("data/us_tracts_risk_2025_predictions.csv"),
+
+        //geo boundaries
         d3.json("data/geography/states.geojson"),
         d3.json("data/tracts_2010_topoJSON.json"),
         d3.json("data/tracts_2020_topoJSON.json")
-    ]).then(([statesCsv, tractsCsv, statesGeoJson, tracts2010TopoJson, tracts2020TopoJson]) => {
+    ]).then(([statesCsv, tracts2025Csv, statesGeoJson, tracts2010TopoJson, tracts2020TopoJson]) => {
         state.datasets.states = parseData(statesCsv);
-        state.datasets.tracts = parseData(tractsCsv);
 
         state.geoJson.states = statesGeoJson;
+
+        const parsed2025Tracts = parseSimplifiedTracts(tracts2025Csv, "2025");
+
+        state.datasets.tracts = parsed2025Tracts
+
+        console.log("Raw CSV from D3:", tracts2025Csv);
+        console.log("Raw CSV length:", tracts2025Csv.length);
 
         // Convert 2019 TopoJSON
         const key2019 = Object.keys(tracts2010TopoJson.objects)[0];
@@ -163,7 +184,7 @@ function renderNationalMap(svg, width, height) {
         })
         .attr("stroke", "#ffffff")
         .attr("stroke-width", 0.1)
-        .style("vector-effect", "non-scaling-stroke")        
+        .style("vector-effect", "non-scaling-stroke")
         .on("mouseover", tip.show)
         .on("mouseout", tip.hide)
         .on("click", d => {
@@ -213,24 +234,6 @@ function renderStateMap(svg, width, height) {
         return tractIdStr.startsWith(selectedStateFips);
     });
 
-    /*
-    console.log("--- TRACT YEAR RENDER DEBUG ---");
-    console.log("1. Selected Year Dropdown:", state.selectedYear);
-    console.log("2. Total Features in Active GeoJSON:", activeGeoJson.features.length);
-    console.log("3. Filtered State Tracts Count:", stateTractFeatures.length);
-
-    if (stateTractFeatures.length > 0) {
-        const sampleProps = stateTractFeatures[0].properties;
-        console.log("4. Sample Tract Properties:", sampleProps);
-
-        // If your 2019 and 2025 files have different metadata (like tract_vintage), this proves which file loaded
-        if (sampleProps.tract_vintage) {
-            console.log("5. Verified Tract Vintage:", sampleProps.tract_vintage);
-        }
-    }
-    console.log("-------------------------------");
-    */
-
     // Build a map lookup for CSV risk data by tractId
     const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
 
@@ -258,13 +261,19 @@ function renderStateMap(svg, width, height) {
         .append("path")
         .attr("class", "feature-path tract-path")
         .attr("d", path)
-        .attr("fill", d => {
-            const tractId = d.id || d.properties.geoid;
-            const info = riskDataMap.get(tractId);
-            if (!info) return "#10b981";
-            if (info.riskCategory === "High Risk") return "#dc2626";
-            if (info.riskCategory === "Mid Risk") return "#f59e0b";
-            return "#10b981"; //low risk
+        .attr("fill", (d, i) => {
+            const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
+            const tractData = riskDataMap.get(tractId);
+
+            if (i === 0) {
+                console.log("1. Selected Year:", state.selectedYear, "| Type:", typeof state.selectedYear);
+                console.log("2. Total tracts loaded in memory:", state.datasets.tracts.length);
+
+                console.log("TopoJSON ID:", tractId);
+                console.log("CSV id?:", tractData);
+            }
+
+            return tractData ? getRiskColorTract(tractData.riskLevel) : "#cbd5e1";
         })
         .attr("stroke", "#ffffff")
         .attr("stroke-width", 0.001)
@@ -383,6 +392,14 @@ function getSimulatedCountyMetric(name) {
 
 }
 
+function getRiskColorTract(riskLevel) {
+    switch (riskLevel?.toLowerCase()) {
+        case 'low': return "#10b981";    // green
+        case 'mid': return "#f59e0b";    // orange
+        case 'high': return "#dc2626";   // red
+        default: return "#cbd5e1";       // default gray
+    }
+}
 
 // Keep track of the active zoom instance
 let zoomBehavior;
