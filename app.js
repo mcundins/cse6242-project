@@ -4,6 +4,7 @@ const state = {
     currentView: "NATIONAL", // "NATIONAL" or "STATE"
     selectedStateCode: null,
     selectedStateName: null,
+    selectedModel: "risklr",
     isNewMapView: true,
     datasets: {
         states: [],
@@ -41,6 +42,7 @@ function initApp() {
 function setupEventListeners() {
     d3.select("#yearSelect").on("change", function () {
         state.selectedYear = this.value;
+        updateModelControlVisibility();
         renderMap();
     });
 }
@@ -52,7 +54,9 @@ function loadAllData() {
                 tractId: String(d.tract_id).trim().padStart(11, '0'),
                 stateCode: String(d.state).trim().padStart(2, '0'),
                 year: yearLabel,
-                riskLevel: String(d.risk).trim().toLowerCase()
+                risklr: String(d.risk_lr).trim().toLowerCase(),
+                riskrf: String(d.risk_rf).trim().toLowerCase(),
+                riskkm: String(d.risk_km).trim().toLowerCase()
             };
         });
     };
@@ -76,8 +80,8 @@ function loadAllData() {
 
         state.datasets.tracts = parsed2025Tracts
 
-        console.log("Raw CSV from D3:", tracts2025Csv);
-        console.log("Raw CSV length:", tracts2025Csv.length);
+        //console.log("Raw CSV from D3:", tracts2025Csv);
+        //console.log("Raw CSV length:", tracts2025Csv.length);
 
         // Convert 2019 TopoJSON
         const key2019 = Object.keys(tracts2010TopoJson.objects)[0];
@@ -93,6 +97,30 @@ function loadAllData() {
         console.warn("Loading fallback/simulated data due to missing local CSV server setup:", err);
     });
 }
+
+function updateModelControlVisibility() {
+    console.log("View:", state.currentView, "| Year:", state.selectedYear);
+
+    const modelGroup = d3.select("#model-control-group");
+
+    if (state.currentView === "STATE" && String(state.selectedYear) === "2025") {
+        modelGroup.style("display", "block");
+    } else {
+        modelGroup.style("display", "none");
+
+        state.selectedModel = "risklr";
+        d3.select("#model-select").property("value", "risklr");
+    }
+}
+
+d3.select("#model-select").on("change", function () {
+    state.selectedModel = this.value;
+
+    // Repaint the map with the new ML model colors
+    if (state.currentView === "state" && state.selectedState) {
+        renderStateMap(state.selectedState);
+    }
+});
 
 function parseData(data) {
     return data.map(d => ({
@@ -265,6 +293,7 @@ function renderStateMap(svg, width, height) {
             const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
             const tractData = riskDataMap.get(tractId);
 
+            /*
             if (i === 0) {
                 console.log("1. Selected Year:", state.selectedYear, "| Type:", typeof state.selectedYear);
                 console.log("2. Total tracts loaded in memory:", state.datasets.tracts.length);
@@ -272,8 +301,15 @@ function renderStateMap(svg, width, height) {
                 console.log("TopoJSON ID:", tractId);
                 console.log("CSV id?:", tractData);
             }
+            */
 
-            return tractData ? getRiskColorTract(tractData.riskLevel) : "#cbd5e1";
+            if (tractData) {
+                // Dynamically grab risk
+                const activeRiskValue = tractData[state.selectedModel];
+                return getRiskColorTract(activeRiskValue);
+            }
+
+            return "#cbd5e1";
         })
         .attr("stroke", "#ffffff")
         .attr("stroke-width", 0.001)
@@ -302,6 +338,7 @@ function drillDownToState(stateCode, stateName) {
     state.selectedStateCode = stateCode;
     state.selectedStateName = stateName;
     state.isNewMapView = true;
+    updateModelControlVisibility();
     renderMap();
 }
 
@@ -310,6 +347,7 @@ function resetToNationalView() {
     state.selectedStateCode = null;
     state.selectedStateName = null;
     state.isNewMapView = true;
+    updateModelControlVisibility();
     renderMap();
 }
 

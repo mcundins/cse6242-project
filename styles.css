@@ -63,7 +63,7 @@ body {
     gap: 1rem;
 }
 
-.year-toggle-group {
+.year-toggle-group, .control-group {
     display: flex;
     align-items: center;
     gap: 0.5rem;
