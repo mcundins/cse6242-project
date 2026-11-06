@@ -23,6 +23,7 @@ const THEME = {
     high: "#dc2626",
     mid: "#f59e0b",
     low: "#10b981",
+    tooltip: "#334155",
     strokeColor: "#ffffff",
     // You can also move your risk colors here later if you want!
 };
@@ -70,6 +71,7 @@ function loadAllData() {
             return {
                 tractId: String(d.tract_id).trim().padStart(11, '0'),
                 stateCode: String(d.state).trim().padStart(2, '0'),
+                county: String(d.county).trim(),
                 year: yearLabel,
                 risklr: String(d.risk_lr).trim().toLowerCase(),
                 riskrf: String(d.risk_rf).trim().toLowerCase(),
@@ -116,7 +118,7 @@ function loadAllData() {
 }
 
 function updateModelControlVisibility() {
-    console.log("View:", state.currentView, "| Year:", state.selectedYear);
+    //console.log("View:", state.currentView, "| Year:", state.selectedYear);
 
     const modelGroup = d3.select("#model-control-group");
 
@@ -193,7 +195,7 @@ function renderNationalMap(svg, width, height) {
     // Configure Tooltip
     tip.html(d => {
         const fips = d.properties.state_fips;
-        const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
+        const info = dataMap.get(fips) || dataMap.get(+fips);
         return `
             <h4>${d.properties.state_name} (${state.selectedYear})</h4>
             <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
@@ -215,7 +217,7 @@ function renderNationalMap(svg, width, height) {
         .attr("d", path)
         .attr("fill", d => {
             const fips = d.properties.state_fips;
-            const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
+            const info = dataMap.get(fips) || dataMap.get(+fips);
             return calculateDominantRiskColor(info);
         })
         .attr("stroke", THEME.strokeColor)
@@ -293,7 +295,6 @@ function renderStateMap(svg, width, height) {
         const activeModelLabel = modelLabels[state.selectedModel] || "Model";
 
         if (info) {
-            // Grab the risk value for the currently selected model
             const rawRisk = info[state.selectedModel];
 
             // Format the string (e.g., "high" -> "High Risk")
@@ -303,9 +304,10 @@ function renderStateMap(svg, width, height) {
 
             return `
                 <h4>Tract ${tractId} (${state.selectedYear})</h4>
-                <div class="row" style="margin-bottom: 4px; border-bottom: 1px solid #334155; padding-bottom: 4px;">
+                <div class="row" style="margin-bottom: 4px; border-bottom: 1px solid ${THEME.tooltip}; padding-bottom: 4px;">
                     <span style="color: ${THEME.fallbackGray}; font-size: 0.8rem;">${activeModelLabel}</span>
                 </div>
+                <div class="row"><span>County:</span> <strong>${info.county}</strong></div>
                 <div class="row"><span>Risk Category:</span> <strong>${formattedRisk}</strong></div>
             `;
         } else {
@@ -389,6 +391,8 @@ function updateModelColors() {
 
             return THEME.fallbackGray;
         });
+
+    updateSidebarState(yearTracts);
 }
 
 /**
@@ -447,48 +451,82 @@ function calculateDominantRiskColor(info) {
     return THEME.low;
 }
 
-function updateSidebarNational(data) {
-    d3.select("#aggValue").text("3,142");
+function updateSidebarNational(yearData) {
+    let totalHigh = 0;
+    let totalMid = 0;
+    let totalLow = 0;
 
-    d3.select("#countHigh").text("412");
-    d3.select("#countMid").text("1,280");
-    d3.select("#countLow").text("1,450");
+    let stateWithMostHighRisk = { name: "N/A", count: -1 };
+    let stateWithMostLowRisk = { name: "N/A", count: -1 };
 
-    d3.select("#highestRiskArea").text("Cook County, IL");
-    d3.select("#lowestRiskArea").text("Loving County, TX");
+    // Sum up the metrics from the state-level CSV
+    yearData.forEach(d => {
+        totalHigh += d.highRiskCount;
+        totalMid += d.midRiskCount;
+        totalLow += d.lowRiskCount;
+
+        if (d.highRiskCount > stateWithMostHighRisk.count) {
+            stateWithMostHighRisk = { name: d.state || d.stateCode, count: d.highRiskCount };
+        }
+        if (d.lowRiskCount > stateWithMostLowRisk.count) {
+            stateWithMostLowRisk = { name: d.state || d.stateCode, count: d.lowRiskCount };
+        }
+    });
+
+    const totalTracts = totalHigh + totalMid + totalLow;
+    const formatNum = d3.format(",");
+
+    d3.select("#aggLabel").text("Total Census Tracts (US)");
+    d3.select("#aggValue").text(formatNum(totalTracts));
+
+    d3.select("#countHigh").text(formatNum(totalHigh));
+    d3.select("#countMid").text(formatNum(totalMid));
+    d3.select("#countLow").text(formatNum(totalLow));
+
+    d3.select("#highestRiskArea").text(
+        stateWithMostHighRisk.count > 0 ? `State FIPS ${stateWithMostHighRisk.name}` : "N/A"
+    );
+    d3.select("#lowestRiskArea").text(
+        stateWithMostLowRisk.count > 0 ? `State FIPS ${stateWithMostLowRisk.name}` : "N/A"
+    );
 }
 
-function updateSidebarState(data) {
+function updateSidebarState(yearTracts) {
+    const totalTracts = yearTracts.length;
+    const activeModel = state.selectedModel;
+
+    let highCount = 0;
+    let midCount = 0;
+    let lowCount = 0;
+    let firstHighTract = null;
+    let firstLowTract = null;
+
+    // Tally the risk categories based on the currently selected model
+    yearTracts.forEach(t => {
+        const risk = t[activeModel];
+        if (risk === 'high') {
+            highCount++;
+            if (!firstHighTract) firstHighTract = t.tractId;
+        } else if (risk === 'mid') {
+            midCount++;
+        } else if (risk === 'low') {
+            lowCount++;
+            if (!firstLowTract) firstLowTract = t.tractId;
+        }
+    });
+
+    const formatNum = d3.format(",");
+
     d3.select("#aggLabel").text(`Total Census Tracts (${state.selectedStateName})`);
-    d3.select("#aggValue").text("1,840");
+    d3.select("#aggValue").text(formatNum(totalTracts));
 
-    d3.select("#countHigh").text("85");
-    d3.select("#countMid").text("420");
-    d3.select("#countLow").text("1,335");
+    d3.select("#countHigh").text(formatNum(highCount));
+    d3.select("#countMid").text(formatNum(midCount));
+    d3.select("#countLow").text(formatNum(lowCount));
 
-    d3.select("#highestRiskArea").text("Tract 9801.01");
-    d3.select("#lowestRiskArea").text("Tract 0102.00");
-}
-
-function getSimulatedStateMetric(id) {
-    return {
-        highRiskCount: Math.floor(Math.random() * 15) + 2,
-        midRiskCount: Math.floor(Math.random() * 30) + 10,
-        lowRiskCount: Math.floor(Math.random() * 40) + 15,
-        highestRiskCounty: "Metro County",
-        lowestRiskCounty: "Rural County"
-    };
-}
-
-function getSimulatedCountyMetric(name) {
-    return {
-        highRiskCount: Math.floor(Math.random() * 8) + 1,
-        midRiskCount: Math.floor(Math.random() * 15) + 3,
-        lowRiskCount: Math.floor(Math.random() * 25) + 5,
-        highestRiskTract: "Tract 104.02",
-        lowestRiskTract: "Tract 002.01"
-    };
-
+    // Display a sample tract for the highest/lowest areas
+    d3.select("#highestRiskArea").text(firstHighTract ? `Tract ${firstHighTract}` : "None");
+    d3.select("#lowestRiskArea").text(firstLowTract ? `Tract ${firstLowTract}` : "None");
 }
 
 function getRiskColorTract(riskLevel) {

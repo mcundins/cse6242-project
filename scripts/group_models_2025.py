@@ -11,8 +11,9 @@ df_km = pd.read_csv("./kmeans_modeling/model_output_2025.csv",
                     dtype={"tract_id": str, "state": str},
                     encoding="latin1")
 
-small_df_lg = df_lg[['tract_id', 'state', 'risk']].copy()
+small_df_lg = df_lg[['tract_id', 'state', 'County', 'risk']].copy()
 small_df_lg.rename(columns={'risk': 'risk_lr'}, inplace=True)
+small_df_lg.rename(columns={'County': 'county'}, inplace=True)
 small_df_rf = df_rf[['tract_id', 'risk']].copy()
 small_df_rf.rename(columns={'risk': 'risk_rf'}, inplace=True)
 small_df_km = df_km[['tract_id', 'risk']].copy()
