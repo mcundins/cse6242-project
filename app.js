@@ -4,6 +4,7 @@ const state = {
     currentView: "NATIONAL", // "NATIONAL" or "STATE"
     selectedStateCode: null,
     selectedStateName: null,
+    selectedModel: "risklr",
     isNewMapView: true,
     datasets: {
         states: [],
@@ -16,10 +17,20 @@ const state = {
     }
 };
 
+// Reusable Theme Colors
+const THEME = {
+    fallbackGray: "#cbd5e1",
+    high: "#dc2626",
+    mid: "#f59e0b",
+    low: "#10b981",
+    strokeColor: "#ffffff",
+    // You can also move your risk colors here later if you want!
+};
+
 // Colors mapping for Risk Levels
 const colorScale = d3.scaleOrdinal()
-    .domain(["High Risk", "Mid Risk", "Low Risk"])
-    .range(["#dc2626", "#f59e0b", "#10b981"]);
+    .domain(["High Risk", "Mid Risk", "Low Risk", "No data"])
+    .range([THEME.high, THEME.mid, THEME.low, THEME.fallbackGray]);
 
 // D3 Tip Tooltip Instance
 const tip = d3.tip()
@@ -33,7 +44,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function initApp() {
     d3.select("#yearSelect").property("value", state.selectedYear);
-
     setupEventListeners();
     loadAllData();
 }
@@ -41,7 +51,16 @@ function initApp() {
 function setupEventListeners() {
     d3.select("#yearSelect").on("change", function () {
         state.selectedYear = this.value;
+        updateModelControlVisibility();
         renderMap();
+    });
+
+    d3.select("#model-select").on("change", function () {
+        state.selectedModel = this.value;
+
+        if (state.currentView === "STATE" && state.selectedStateCode) {
+            updateModelColors();
+        }
     });
 }
 
@@ -52,7 +71,9 @@ function loadAllData() {
                 tractId: String(d.tract_id).trim().padStart(11, '0'),
                 stateCode: String(d.state).trim().padStart(2, '0'),
                 year: yearLabel,
-                riskLevel: String(d.risk).trim().toLowerCase()
+                risklr: String(d.risk_lr).trim().toLowerCase(),
+                riskrf: String(d.risk_rf).trim().toLowerCase(),
+                riskkm: String(d.risk_km).trim().toLowerCase()
             };
         });
     };
@@ -76,8 +97,8 @@ function loadAllData() {
 
         state.datasets.tracts = parsed2025Tracts
 
-        console.log("Raw CSV from D3:", tracts2025Csv);
-        console.log("Raw CSV length:", tracts2025Csv.length);
+        //console.log("Raw CSV from D3:", tracts2025Csv);
+        //console.log("Raw CSV length:", tracts2025Csv.length);
 
         // Convert 2019 TopoJSON
         const key2019 = Object.keys(tracts2010TopoJson.objects)[0];
@@ -92,6 +113,21 @@ function loadAllData() {
     }).catch(err => {
         console.warn("Loading fallback/simulated data due to missing local CSV server setup:", err);
     });
+}
+
+function updateModelControlVisibility() {
+    console.log("View:", state.currentView, "| Year:", state.selectedYear);
+
+    const modelGroup = d3.select("#model-control-group");
+
+    if (state.currentView === "STATE" && String(state.selectedYear) === "2025") {
+        modelGroup.style("display", "");
+    } else {
+        modelGroup.style("display", "none");
+
+        state.selectedModel = "risklr";
+        d3.select("#model-select").property("value", "risklr");
+    }
 }
 
 function parseData(data) {
@@ -163,7 +199,7 @@ function renderNationalMap(svg, width, height) {
             <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
             <div class="row"><span>Mid Risk Tracts:</span> <strong>${info.midRiskCount}</strong></div>
             <div class="row"><span>Low Risk Tracts:</span> <strong>${info.lowRiskCount}</strong></div>
-            <div style="margin-top:4px; font-size:0.75rem; color:#cbd5e1;">
+            <div style="margin-top:4px; font-size:0.75rem; color:${THEME.fallbackGray};">
                 Highest Risk: ${info.highestRiskCounty}<br/>
                 Lowest Risk: ${info.lowestRiskCounty}
             </div>
@@ -182,7 +218,7 @@ function renderNationalMap(svg, width, height) {
             const info = dataMap.get(fips) || dataMap.get(+fips) || getSimulatedStateMetric(fips);
             return calculateDominantRiskColor(info);
         })
-        .attr("stroke", "#ffffff")
+        .attr("stroke", THEME.strokeColor)
         .attr("stroke-width", 0.1)
         .style("vector-effect", "non-scaling-stroke")
         .on("mouseover", tip.show)
@@ -245,13 +281,39 @@ function renderStateMap(svg, width, height) {
     const path = d3.geoPath().projection(projection);
 
     tip.html(d => {
-        const tractId = d.id || d.properties.geoid;
-        const info = riskDataMap.get(tractId) || { riskCategory: "Low Risk", score: "N/A" };
-        return `
-        <h4>Tract ${tractId} (${state.selectedYear})</h4>
-        <div class="row"><span>Risk Category:</span> <strong>${info.riskCategory || 'Low Risk'}</strong></div>
-        <div class="row"><span>Risk Score:</span> <strong>${info.score || 'N/A'}</strong></div>
-    `;
+        const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
+        const info = riskDataMap.get(tractId);
+
+        const modelLabels = {
+            risklr: "Model: Logistic Regression",
+            riskrf: "Model: Random Forest",
+            riskkm: "Model: K-Means Clustering"
+        };
+
+        const activeModelLabel = modelLabels[state.selectedModel] || "Model";
+
+        if (info) {
+            // Grab the risk value for the currently selected model
+            const rawRisk = info[state.selectedModel];
+
+            // Format the string (e.g., "high" -> "High Risk")
+            const formattedRisk = rawRisk
+                ? (rawRisk.charAt(0).toUpperCase() + rawRisk.slice(1)) + " Risk"
+                : "N/A";
+
+            return `
+                <h4>Tract ${tractId} (${state.selectedYear})</h4>
+                <div class="row" style="margin-bottom: 4px; border-bottom: 1px solid #334155; padding-bottom: 4px;">
+                    <span style="color: ${THEME.fallbackGray}; font-size: 0.8rem;">${activeModelLabel}</span>
+                </div>
+                <div class="row"><span>Risk Category:</span> <strong>${formattedRisk}</strong></div>
+            `;
+        } else {
+            return `
+                <h4>Tract ${tractId} (${state.selectedYear})</h4>
+                <div class="row"><span>Risk Category:</span> <strong>No Data</strong></div>
+            `;
+        }
     });
 
     // Render individual tract geometries
@@ -265,6 +327,7 @@ function renderStateMap(svg, width, height) {
             const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
             const tractData = riskDataMap.get(tractId);
 
+            /*
             if (i === 0) {
                 console.log("1. Selected Year:", state.selectedYear, "| Type:", typeof state.selectedYear);
                 console.log("2. Total tracts loaded in memory:", state.datasets.tracts.length);
@@ -272,10 +335,17 @@ function renderStateMap(svg, width, height) {
                 console.log("TopoJSON ID:", tractId);
                 console.log("CSV id?:", tractData);
             }
+            */
 
-            return tractData ? getRiskColorTract(tractData.riskLevel) : "#cbd5e1";
+            if (tractData) {
+                // Dynamically grab risk
+                const activeRiskValue = tractData[state.selectedModel];
+                return getRiskColorTract(activeRiskValue);
+            }
+
+            return THEME.fallbackGray;
         })
-        .attr("stroke", "#ffffff")
+        .attr("stroke", THEME.strokeColor)
         .attr("stroke-width", 0.001)
         .style("vector-effect", "non-scaling-stroke")
         .on("mouseover", tip.show)
@@ -294,6 +364,33 @@ function renderStateMap(svg, width, height) {
     updateSidebarState(yearTracts);
 }
 
+function updateModelColors() {
+    // 1. Get the current data for the selected state and year
+    const yearTracts = state.datasets.tracts.filter(
+        d => d.year === state.selectedYear && d.stateCode === state.selectedStateCode
+    );
+
+    // 2. Build the lookup map
+    const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
+
+    // 3. Select all existing tracts and transition their fill color
+    d3.selectAll(".tract-path")
+        .transition()
+        .duration(400)
+        .attr("fill", d => {
+            const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
+            const tractData = riskDataMap.get(tractId);
+
+            if (tractData) {
+                // Dynamically grab the new risk model's value (risklr, riskrf, riskkm)
+                const activeRiskValue = tractData[state.selectedModel];
+                return getRiskColorTract(activeRiskValue);
+            }
+
+            return THEME.fallbackGray;
+        });
+}
+
 /**
  * Navigation Actions
  */
@@ -302,6 +399,7 @@ function drillDownToState(stateCode, stateName) {
     state.selectedStateCode = stateCode;
     state.selectedStateName = stateName;
     state.isNewMapView = true;
+    updateModelControlVisibility();
     renderMap();
 }
 
@@ -310,6 +408,7 @@ function resetToNationalView() {
     state.selectedStateCode = null;
     state.selectedStateName = null;
     state.isNewMapView = true;
+    updateModelControlVisibility();
     renderMap();
 }
 
@@ -321,7 +420,7 @@ function renderLegend() {
     container.html("");
 
     const legendSvg = container.append("svg")
-        .attr("width", 320)
+        .attr("width", 420)
         .attr("height", 50);
 
     const legendOrdinal = d3.legendColor()
@@ -339,13 +438,13 @@ function renderLegend() {
 }
 
 function calculateDominantRiskColor(info) {
-    if (!info) return "#cbd5e1";
+    if (!info) return THEME.fallbackGray;
     if (info.highRiskCount >= info.midRiskCount && info.highRiskCount >= info.lowRiskCount) {
-        return "#dc2626";
+        return THEME.high;
     } else if (info.midRiskCount >= info.lowRiskCount) {
-        return "#f59e0b";
+        return THEME.mid;
     }
-    return "#10b981";
+    return THEME.low;
 }
 
 function updateSidebarNational(data) {
@@ -394,10 +493,10 @@ function getSimulatedCountyMetric(name) {
 
 function getRiskColorTract(riskLevel) {
     switch (riskLevel?.toLowerCase()) {
-        case 'low': return "#10b981";    // green
-        case 'mid': return "#f59e0b";    // orange
-        case 'high': return "#dc2626";   // red
-        default: return "#cbd5e1";       // default gray
+        case 'low': return THEME.low;    // green
+        case 'mid': return THEME.mid;    // orange
+        case 'high': return THEME.high;   // red
+        default: return THEME.fallbackGray;       // default gray
     }
 }
 
