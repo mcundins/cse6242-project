@@ -25,13 +25,19 @@ const THEME = {
     low: "#10b981",
     tooltip: "#334155",
     strokeColor: "#ffffff",
-    // You can also move your risk colors here later if you want!
+
+    food_desert_yes: "#d8e61a",
+    food_desert_no: "#45551a",  
 };
 
 // Colors mapping for Risk Levels
-const colorScale = d3.scaleOrdinal()
+const colorScale2025 = d3.scaleOrdinal()
     .domain(["High Risk", "Mid Risk", "Low Risk", "No data"])
     .range([THEME.high, THEME.mid, THEME.low, THEME.fallbackGray]);
+
+const colorScale2019 = d3.scaleOrdinal()
+    .domain(["Food Desert", "Not Food Desert", "No Data"])
+    .range([THEME.food_desert_yes, THEME.food_desert_no, THEME.fallbackGray]);
 
 // D3 Tip Tooltip Instance
 const tip = d3.tip()
@@ -427,8 +433,13 @@ function renderLegend() {
     const container = d3.select("#riskLegend");
     container.html("");
 
+    const activeScale = state.selectedYear === "2019" ? colorScale2019 : colorScale2025;
+
+    // Adjust width depending on how many items are in the legend
+    const legendWidth = state.selectedYear === "2019" ? 350 : 420;
+
     const legendSvg = container.append("svg")
-        .attr("width", 420)
+        .attr("width", legendWidth)
         .attr("height", 50);
 
     const legendOrdinal = d3.legendColor()
@@ -436,7 +447,7 @@ function renderLegend() {
         .shapeHeight(15)
         .shapePadding(75)
         .orient('horizontal')
-        .scale(colorScale);
+        .scale(activeScale);
 
     const legendGroup = legendSvg.append("g")
         .attr("transform", "translate(10, 5)")
