@@ -75,7 +75,9 @@ function loadAllData() {
                 year: yearLabel,
                 risklr: String(d.risk_lr).trim().toLowerCase(),
                 riskrf: String(d.risk_rf).trim().toLowerCase(),
-                riskkm: String(d.risk_km).trim().toLowerCase()
+                riskkm: String(d.risk_km).trim().toLowerCase(),
+                populationTotal: Number(d.population_total),
+                medianFamilyIncome: Number(d.median_family_income)
             };
         });
     };
@@ -307,8 +309,10 @@ function renderStateMap(svg, width, height) {
                 <div class="row" style="margin-bottom: 4px; border-bottom: 1px solid ${THEME.tooltip}; padding-bottom: 4px;">
                     <span style="color: ${THEME.fallbackGray}; font-size: 0.8rem;">${activeModelLabel}</span>
                 </div>
-                <div class="row"><span>County:</span> <strong>${info.county}</strong></div>
                 <div class="row"><span>Risk Category:</span> <strong>${formattedRisk}</strong></div>
+                <div class="row"><span>County:</span> <strong>${info.county}</strong></div>
+                <div class="row"><span>Population:</span> <strong>${info.populationTotal.toLocaleString()}</strong></div>
+                <div class="row"><span>Median Family Income:</span> <strong>$${info.medianFamilyIncome.toLocaleString()}</strong></div>
             `;
         } else {
             return `
@@ -483,12 +487,8 @@ function updateSidebarNational(yearData) {
     d3.select("#countMid").text(formatNum(totalMid));
     d3.select("#countLow").text(formatNum(totalLow));
 
-    d3.select("#highestRiskArea").text(
-        stateWithMostHighRisk.count > 0 ? `State FIPS ${stateWithMostHighRisk.name}` : "N/A"
-    );
-    d3.select("#lowestRiskArea").text(
-        stateWithMostLowRisk.count > 0 ? `State FIPS ${stateWithMostLowRisk.name}` : "N/A"
-    );
+    //hide temporarily
+    d3.select(".extremes-section").style("display", "none");
 }
 
 function updateSidebarState(yearTracts) {
@@ -524,10 +524,14 @@ function updateSidebarState(yearTracts) {
     d3.select("#countMid").text(formatNum(midCount));
     d3.select("#countLow").text(formatNum(lowCount));
 
-    // Display a sample tract for the highest/lowest areas
-    d3.select("#highestRiskArea").text(firstHighTract ? `Tract ${firstHighTract}` : "None");
-    d3.select("#lowestRiskArea").text(firstLowTract ? `Tract ${firstLowTract}` : "None");
+    // Display population and median income statistics 
+    d3.select("#population").text(formatNum(yearTracts.reduce((total, d) => total + d.populationTotal, 0)));
+    d3.select("#highestMedianIncome").text(formatNum(Math.max(...yearTracts.map(d => d.medianFamilyIncome))));
+    d3.select("#lowestMedianIncome").text(formatNum(Math.min(...yearTracts.map(d => d.medianFamilyIncome))));
+
+    d3.select(".extremes-section").style("display", "");
 }
+
 
 function getRiskColorTract(riskLevel) {
     switch (riskLevel?.toLowerCase()) {
