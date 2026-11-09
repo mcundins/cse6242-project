@@ -90,9 +90,10 @@ function loadAllData() {
     };
 
     Promise.all([
+        //data with state-level risk and food desert summaries
         d3.csv("data/us_states_risk_2019_2025.csv"),
 
-        //data with predictions
+        //data with predictions and food desert labels
         d3.csv("data/us_tracts_risk_2025_predictions.csv"),
         d3.csv("data/us_tracts_2019_fd.csv"),
 
@@ -542,7 +543,7 @@ function updateSidebarState(yearTracts) {
         // 1. High Card (Red) -> Food Desert
         d3.select(".risk-card.high").style("display", "");
         d3.select(".risk-card.high .risk-indicator").style("background", THEME.food_desert_yes); // Color the dot        
-        d3.select("#labelHigh").text("Food Desert:");
+        d3.select("#labelHigh").text("Food Desert");
         d3.select("#countHigh").text(formatNum(fdCount));
 
         // 2. Mid Card (Orange) -> Hide it
@@ -551,7 +552,7 @@ function updateSidebarState(yearTracts) {
         // 3. Low Card (Green) -> Not Food Desert
         d3.select(".risk-card.low").style("display", "");
         d3.select(".risk-card.low .risk-indicator").style("background", THEME.food_desert_no); // Color the dot
-        d3.select("#labelLow").text("Not Food Desert:");
+        d3.select("#labelLow").text("Not Food Desert");
         d3.select("#countLow").text(formatNum(nonFdCount));
 
         // Display population and median income statistics 
