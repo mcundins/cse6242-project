@@ -27,7 +27,7 @@ const THEME = {
     strokeColor: "#ffffff",
 
     food_desert_yes: "#d8e61a",
-    food_desert_no: "#45551a",  
+    food_desert_no: "#45551a",
 };
 
 // Colors mapping for Risk Levels
@@ -83,7 +83,8 @@ function loadAllData() {
                 riskrf: String(d.risk_rf).trim().toLowerCase(),
                 riskkm: String(d.risk_km).trim().toLowerCase(),
                 populationTotal: Number(d.population_total),
-                medianFamilyIncome: Number(d.median_family_income)
+                medianFamilyIncome: Number(d.median_family_income),
+                isFoodDesert: d.food_desert === "True" ? true : false
             };
         });
     };
@@ -93,19 +94,21 @@ function loadAllData() {
 
         //data with predictions
         d3.csv("data/us_tracts_risk_2025_predictions.csv"),
+        d3.csv("data/us_tracts_2019_fd.csv"),
 
         //geo boundaries
         d3.json("data/geography/states.geojson"),
         d3.json("data/tracts_2010_topoJSON.json"),
         d3.json("data/tracts_2020_topoJSON.json")
-    ]).then(([statesCsv, tracts2025Csv, statesGeoJson, tracts2010TopoJson, tracts2020TopoJson]) => {
+    ]).then(([statesCsv, tracts2025Csv, tracts2019Csv, statesGeoJson, tracts2010TopoJson, tracts2020TopoJson]) => {
         state.datasets.states = parseData(statesCsv);
 
         state.geoJson.states = statesGeoJson;
 
         const parsed2025Tracts = parseSimplifiedTracts(tracts2025Csv, "2025");
+        const parsed2019Tracts = parseSimplifiedTracts(tracts2019Csv, "2019");
 
-        state.datasets.tracts = parsed2025Tracts
+        state.datasets.tracts = [...parsed2025Tracts, ...parsed2019Tracts]
 
         //console.log("Raw CSV from D3:", tracts2025Csv);
         //console.log("Raw CSV length:", tracts2025Csv.length);
@@ -294,15 +297,29 @@ function renderStateMap(svg, width, height) {
         const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
         const info = riskDataMap.get(tractId);
 
-        const modelLabels = {
-            risklr: "Model: Logistic Regression",
-            riskrf: "Model: Random Forest",
-            riskkm: "Model: K-Means Clustering"
-        };
+        if (!info) {
+            return `<h4>Tract ${tractId} (${state.selectedYear})</h4>
+                <div class="row"><strong>No Data</strong></div>`;
+        }
 
-        const activeModelLabel = modelLabels[state.selectedModel] || "Model";
+        if (state.selectedYear === "2019") {
+            const status = (info.isFoodDesert === true) ? "Food Desert" : "Not Food Desert";
+            return `
+                <h4>Tract ${tractId} (2019)</h4>
+                <div class="row"><span>Status:</span> <strong>${status}</strong></div>
+                <div class="row"><span>County:</span> <strong>${info.county}</strong></div>
+                <div class="row"><span>Population:</span> <strong>${info.populationTotal.toLocaleString()}</strong></div>
+                <div class="row"><span>Median Family Income:</span> <strong>$${info.medianFamilyIncome.toLocaleString()}</strong></div>
+            `;
+        } else {
+            const modelLabels = {
+                risklr: "Model: Logistic Regression",
+                riskrf: "Model: Random Forest",
+                riskkm: "Model: K-Means Clustering"
+            };
 
-        if (info) {
+            const activeModelLabel = modelLabels[state.selectedModel] || "Model";
+
             const rawRisk = info[state.selectedModel];
 
             // Format the string (e.g., "high" -> "High Risk")
@@ -319,11 +336,6 @@ function renderStateMap(svg, width, height) {
                 <div class="row"><span>County:</span> <strong>${info.county}</strong></div>
                 <div class="row"><span>Population:</span> <strong>${info.populationTotal.toLocaleString()}</strong></div>
                 <div class="row"><span>Median Family Income:</span> <strong>$${info.medianFamilyIncome.toLocaleString()}</strong></div>
-            `;
-        } else {
-            return `
-                <h4>Tract ${tractId} (${state.selectedYear})</h4>
-                <div class="row"><span>Risk Category:</span> <strong>No Data</strong></div>
             `;
         }
     });
@@ -349,8 +361,15 @@ function renderStateMap(svg, width, height) {
             }
             */
 
-            if (tractData) {
-                // Dynamically grab risk
+            if (!tractData) return THEME.fallbackGray;
+
+            if (state.selectedYear === "2019") {
+                // 2019 Logic: Check your new boolean/string column
+                if (tractData.isFoodDesert === true) return THEME.food_desert_yes;
+                if (tractData.isFoodDesert === false) return THEME.food_desert_no;
+                return THEME.fallbackGray;
+            } else {
+                // 2025 Logic: Use the active ML model
                 const activeRiskValue = tractData[state.selectedModel];
                 return getRiskColorTract(activeRiskValue);
             }
@@ -385,7 +404,6 @@ function updateModelColors() {
     // 2. Build the lookup map
     const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
 
-    // 3. Select all existing tracts and transition their fill color
     d3.selectAll(".tract-path")
         .transition()
         .duration(400)
@@ -504,41 +522,84 @@ function updateSidebarNational(yearData) {
 
 function updateSidebarState(yearTracts) {
     const totalTracts = yearTracts.length;
-    const activeModel = state.selectedModel;
-
-    let highCount = 0;
-    let midCount = 0;
-    let lowCount = 0;
-    let firstHighTract = null;
-    let firstLowTract = null;
-
-    // Tally the risk categories based on the currently selected model
-    yearTracts.forEach(t => {
-        const risk = t[activeModel];
-        if (risk === 'high') {
-            highCount++;
-            if (!firstHighTract) firstHighTract = t.tractId;
-        } else if (risk === 'mid') {
-            midCount++;
-        } else if (risk === 'low') {
-            lowCount++;
-            if (!firstLowTract) firstLowTract = t.tractId;
-        }
-    });
-
     const formatNum = d3.format(",");
 
-    d3.select("#aggLabel").text(`Total Census Tracts (${state.selectedStateName})`);
-    d3.select("#aggValue").text(formatNum(totalTracts));
+    if (state.selectedYear === "2019") {
+        let fdCount = 0, nonFdCount = 0;
+        let firstFdTract = null, firstNonFdTract = null;
 
-    d3.select("#countHigh").text(formatNum(highCount));
-    d3.select("#countMid").text(formatNum(midCount));
-    d3.select("#countLow").text(formatNum(lowCount));
+        yearTracts.forEach(t => {
+            const isFD = t.isFoodDesert === true;
+            if (isFD) {
+                fdCount++;
+                if (!firstFdTract) firstFdTract = t.tractId;
+            } else {
+                nonFdCount++;
+                if (!firstNonFdTract) firstNonFdTract = t.tractId;
+            }
+        });
 
-    // Display population and median income statistics 
-    d3.select("#population").text(formatNum(yearTracts.reduce((total, d) => total + d.populationTotal, 0)));
-    d3.select("#highestMedianIncome").text(formatNum(Math.max(...yearTracts.map(d => d.medianFamilyIncome))));
-    d3.select("#lowestMedianIncome").text(formatNum(Math.min(...yearTracts.map(d => d.medianFamilyIncome))));
+        // 1. High Card (Red) -> Food Desert
+        d3.select(".risk-card.high").style("display", "");
+        d3.select(".risk-card.high .risk-indicator").style("background", THEME.food_desert_yes); // Color the dot        
+        d3.select("#labelHigh").text("Food Desert:");
+        d3.select("#countHigh").text(formatNum(fdCount));
+
+        // 2. Mid Card (Orange) -> Hide it
+        d3.select(".risk-card.mid").style("display", "none");
+
+        // 3. Low Card (Green) -> Not Food Desert
+        d3.select(".risk-card.low").style("display", "");
+        d3.select(".risk-card.low .risk-indicator").style("background", THEME.food_desert_no); // Color the dot
+        d3.select("#labelLow").text("Not Food Desert:");
+        d3.select("#countLow").text(formatNum(nonFdCount));
+
+        // Display population and median income statistics 
+        d3.select("#population").text(formatNum(yearTracts.reduce((total, d) => total + d.populationTotal, 0)));
+        d3.select("#highestMedianIncome").text(formatNum(Math.max(...yearTracts.map(d => d.medianFamilyIncome))));
+        d3.select("#lowestMedianIncome").text(formatNum(Math.min(...yearTracts.map(d => d.medianFamilyIncome))));
+    }
+    else {
+        const activeModel = state.selectedModel;
+
+        let highCount = 0;
+        let midCount = 0;
+        let lowCount = 0;
+        let firstHighTract = null;
+        let firstLowTract = null;
+
+        // Tally the risk categories based on the currently selected model
+        yearTracts.forEach(t => {
+            const risk = t[activeModel];
+            if (risk === 'high') {
+                highCount++;
+                if (!firstHighTract) firstHighTract = t.tractId;
+            } else if (risk === 'mid') {
+                midCount++;
+            } else if (risk === 'low') {
+                lowCount++;
+                if (!firstLowTract) firstLowTract = t.tractId;
+            }
+        });
+
+        d3.select(".risk-card.high").style("display", "").style("border-color", null);
+        d3.select(".risk-card.high .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select(".risk-card.mid").style("display", "");
+        d3.select(".risk-card.low").style("display", "").style("border-color", null);
+        d3.select(".risk-card.low .risk-indicator").style("background", null); // Reset dot to CSS var
+
+        d3.select("#aggLabel").text(`Total Census Tracts (${state.selectedStateName})`);
+        d3.select("#aggValue").text(formatNum(totalTracts));
+
+        d3.select("#countHigh").text(formatNum(highCount));
+        d3.select("#countMid").text(formatNum(midCount));
+        d3.select("#countLow").text(formatNum(lowCount));
+
+        // Display population and median income statistics 
+        d3.select("#population").text(formatNum(yearTracts.reduce((total, d) => total + d.populationTotal, 0)));
+        d3.select("#highestMedianIncome").text(formatNum(Math.max(...yearTracts.map(d => d.medianFamilyIncome))));
+        d3.select("#lowestMedianIncome").text(formatNum(Math.min(...yearTracts.map(d => d.medianFamilyIncome))));
+    }
 
     d3.select(".extremes-section").style("display", "");
 }
