@@ -90,7 +90,7 @@ function loadAllData() {
     };
 
     Promise.all([
-        //data with state-level risk and food desert summaries
+        //data with state-level risk and food desert summaries all in the same file.
         d3.csv("data/us_states_risk_2019_2025.csv"),
 
         //data with predictions and food desert labels
@@ -150,11 +150,21 @@ function parseData(data) {
         // Force the ID to a string and pad to 11 characters. 
         // Note: USDA FARA datasets often use "CensusTract" as the column name. 
         // Adjust the fallback fields below to match your exact CSV column header.
-        tractId: String(d.tractId || d.geoid || d.CensusTract).padStart(11, '0'),
 
-        highRiskCount: +d.highRiskCount || 0,
-        midRiskCount: +d.midRiskCount || 0,
-        lowRiskCount: +d.lowRiskCount || 0
+        year: d.year,
+        stateCode: d.stateCode,
+        stateName: d.stateName,
+        fdCount: +d.fdCount || 0,
+        nonFdCount: +d.nonFdCount || 0,
+        highRiskCount_lr: +d.highRiskCount_lr || 0,
+        midRiskCount_lr: +d.midRiskCount_lr || 0,
+        lowRiskCount_lr: +d.lowRiskCount_lr || 0,
+        highRiskCount_km: +d.highRiskCount_km || 0,
+        midRiskCount_km: +d.midRiskCount_km || 0,
+        lowRiskCount_km: +d.lowRiskCount_km || 0,
+        highRiskCount_rf: +d.highRiskCount_rf || 0,
+        midRiskCount_rf: +d.midRiskCount_rf || 0,
+        lowRiskCount_rf: +d.lowRiskCount_rf || 0
     }));
 }
 
@@ -485,37 +495,66 @@ function calculateDominantRiskColor(info) {
     return THEME.low;
 }
 
+
 function updateSidebarNational(yearData) {
-    let totalHigh = 0;
-    let totalMid = 0;
-    let totalLow = 0;
-
-    let stateWithMostHighRisk = { name: "N/A", count: -1 };
-    let stateWithMostLowRisk = { name: "N/A", count: -1 };
-
-    // Sum up the metrics from the state-level CSV
-    yearData.forEach(d => {
-        totalHigh += d.highRiskCount;
-        totalMid += d.midRiskCount;
-        totalLow += d.lowRiskCount;
-
-        if (d.highRiskCount > stateWithMostHighRisk.count) {
-            stateWithMostHighRisk = { name: d.state || d.stateCode, count: d.highRiskCount };
-        }
-        if (d.lowRiskCount > stateWithMostLowRisk.count) {
-            stateWithMostLowRisk = { name: d.state || d.stateCode, count: d.lowRiskCount };
-        }
-    });
-
-    const totalTracts = totalHigh + totalMid + totalLow;
     const formatNum = d3.format(",");
 
-    d3.select("#aggLabel").text("Total Census Tracts (US)");
-    d3.select("#aggValue").text(formatNum(totalTracts));
+    if (state.selectedYear === "2019") {
+        let totalFd = 0;
+        let totalNonFd = 0;
 
-    d3.select("#countHigh").text(formatNum(totalHigh));
-    d3.select("#countMid").text(formatNum(totalMid));
-    d3.select("#countLow").text(formatNum(totalLow));
+        // Sum up the metrics from the state-level CSV
+        yearData.forEach(d => {
+            totalFd += d.fdCount;
+            totalNonFd += d.nonFdCount;
+        });
+
+        const totalTracts = totalFd + totalNonFd;
+
+        d3.select("#aggLabel").text("Total Census Tracts (US)");
+        d3.select("#aggValue").text(formatNum(totalTracts));
+
+        d3.select(".risk-card.high").style("display", "");
+        d3.select(".risk-card.high .risk-indicator").style("background", THEME.food_desert_yes); // Color the dot        
+        d3.select("#labelHigh").text("Food Desert");
+        d3.select("#countHigh").text(formatNum(totalFd));
+
+        d3.select(".risk-card.mid").style("display", "none");
+
+        d3.select(".risk-card.low").style("display", "");
+        d3.select(".risk-card.low .risk-indicator").style("background", THEME.food_desert_no); // Color the dot
+        d3.select("#labelLow").text("Not Food Desert");
+        d3.select("#countLow").text(formatNum(totalNonFd));
+
+    } else {
+        let lowRiskCount_lr = 0;
+        let midRiskCount_lr = 0;
+        let highRiskCount_lr = 0;
+
+        yearData.forEach(d => {
+            highRiskCount_lr += (+d.highRiskCount_lr || 0);
+            midRiskCount_lr += (+d.midRiskCount_lr || 0);
+            lowRiskCount_lr += (+d.lowRiskCount_lr || 0);
+        });
+
+        const totalTracts = lowRiskCount_lr + midRiskCount_lr + highRiskCount_lr;
+
+        d3.select(".risk-card.high").style("display", "").style("border-color", null);
+        d3.select(".risk-card.high .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select("#labelHigh").text("High Risk Tracts");
+        d3.select(".risk-card.mid").style("display", "");
+        d3.select("#labelMid").text("Mid Risk Tracts");
+        d3.select(".risk-card.low").style("display", "").style("border-color", null);
+        d3.select(".risk-card.low .risk-indicator").style("background", null); // Reset dot to CSS var        
+        d3.select("#labelLow").text("Low Risk Tracts");
+
+        d3.select("#aggLabel").text("Total Census Tracts (US)");
+        d3.select("#aggValue").text(formatNum(totalTracts));
+
+        d3.select("#countHigh").text(formatNum(highRiskCount_lr));
+        d3.select("#countMid").text(formatNum(midRiskCount_lr));
+        d3.select("#countLow").text(formatNum(lowRiskCount_lr));
+    }
 
     //hide temporarily
     d3.select(".extremes-section").style("display", "none");
@@ -540,16 +579,18 @@ function updateSidebarState(yearTracts) {
             }
         });
 
-        // 1. High Card (Red) -> Food Desert
+        const totalTracts = fdCount + nonFdCount;
+
+        d3.select("#aggLabel").text("Total Census Tracts (US)");
+        d3.select("#aggValue").text(formatNum(totalTracts));        
+
         d3.select(".risk-card.high").style("display", "");
         d3.select(".risk-card.high .risk-indicator").style("background", THEME.food_desert_yes); // Color the dot        
         d3.select("#labelHigh").text("Food Desert");
         d3.select("#countHigh").text(formatNum(fdCount));
 
-        // 2. Mid Card (Orange) -> Hide it
         d3.select(".risk-card.mid").style("display", "none");
 
-        // 3. Low Card (Green) -> Not Food Desert
         d3.select(".risk-card.low").style("display", "");
         d3.select(".risk-card.low .risk-indicator").style("background", THEME.food_desert_no); // Color the dot
         d3.select("#labelLow").text("Not Food Desert");
@@ -585,9 +626,12 @@ function updateSidebarState(yearTracts) {
 
         d3.select(".risk-card.high").style("display", "").style("border-color", null);
         d3.select(".risk-card.high .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select("#labelHigh").text("High Risk Tracts");
         d3.select(".risk-card.mid").style("display", "");
+        d3.select("#labelMid").text("Mid Risk Tracts");
         d3.select(".risk-card.low").style("display", "").style("border-color", null);
         d3.select(".risk-card.low .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select("#labelLow").text("Low Risk Tracts");
 
         d3.select("#aggLabel").text(`Total Census Tracts (${state.selectedStateName})`);
         d3.select("#aggValue").text(formatNum(totalTracts));
@@ -604,7 +648,6 @@ function updateSidebarState(yearTracts) {
 
     d3.select(".extremes-section").style("display", "");
 }
-
 
 function getRiskColorTract(riskLevel) {
     switch (riskLevel?.toLowerCase()) {
