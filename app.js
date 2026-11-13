@@ -68,6 +68,11 @@ function setupEventListeners() {
         if (state.currentView === "STATE" && state.selectedStateCode) {
             updateModelColors();
         }
+
+        if (state.currentView === "NATIONAL") {
+            const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
+            updateSidebarNational(yearData);
+        }        
     });
 }
 
@@ -90,7 +95,7 @@ function loadAllData() {
     };
 
     Promise.all([
-        //data with state-level risk and food desert summaries
+        //data with state-level risk and food desert summaries all in the same file.
         d3.csv("data/us_states_risk_2019_2025.csv"),
 
         //data with predictions and food desert labels
@@ -134,7 +139,8 @@ function updateModelControlVisibility() {
 
     const modelGroup = d3.select("#model-control-group");
 
-    if (state.currentView === "STATE" && String(state.selectedYear) === "2025") {
+    //if (state.currentView === "STATE" && String(state.selectedYear) === "2025") {
+    if (String(state.selectedYear) === "2025") {
         modelGroup.style("display", "");
     } else {
         modelGroup.style("display", "none");
@@ -150,11 +156,21 @@ function parseData(data) {
         // Force the ID to a string and pad to 11 characters. 
         // Note: USDA FARA datasets often use "CensusTract" as the column name. 
         // Adjust the fallback fields below to match your exact CSV column header.
-        tractId: String(d.tractId || d.geoid || d.CensusTract).padStart(11, '0'),
 
-        highRiskCount: +d.highRiskCount || 0,
-        midRiskCount: +d.midRiskCount || 0,
-        lowRiskCount: +d.lowRiskCount || 0
+        year: d.year,
+        stateCode: d.stateCode,
+        stateName: d.stateName,
+        fdCount: +d.fdCount || 0,
+        nonFdCount: +d.nonFdCount || 0,
+        highRiskCount_lr: +d.highRiskCount_lr || 0,
+        midRiskCount_lr: +d.midRiskCount_lr || 0,
+        lowRiskCount_lr: +d.lowRiskCount_lr || 0,
+        highRiskCount_km: +d.highRiskCount_km || 0,
+        midRiskCount_km: +d.midRiskCount_km || 0,
+        lowRiskCount_km: +d.lowRiskCount_km || 0,
+        highRiskCount_rf: +d.highRiskCount_rf || 0,
+        midRiskCount_rf: +d.midRiskCount_rf || 0,
+        lowRiskCount_rf: +d.lowRiskCount_rf || 0
     }));
 }
 
@@ -208,16 +224,43 @@ function renderNationalMap(svg, width, height) {
     tip.html(d => {
         const fips = d.properties.state_fips;
         const info = dataMap.get(fips) || dataMap.get(+fips);
-        return `
+
+        if (state.selectedYear === "2019") {
+
+            return `
             <h4>${d.properties.state_name} (${state.selectedYear})</h4>
-            <div class="row"><span>High Risk Tracts:</span> <strong>${info.highRiskCount}</strong></div>
-            <div class="row"><span>Mid Risk Tracts:</span> <strong>${info.midRiskCount}</strong></div>
-            <div class="row"><span>Low Risk Tracts:</span> <strong>${info.lowRiskCount}</strong></div>
+            <div class="row"><span>Food Desert Tracts:</span> <strong>${info.fdCount}</strong></div>
+            <div class="row"><span>Non-Food Desert Tracts:</span> <strong>${info.nonFdCount}</strong></div>
             <div style="margin-top:4px; font-size:0.75rem; color:${THEME.fallbackGray};">
-                Highest Risk: ${info.highestRiskCounty}<br/>
-                Lowest Risk: ${info.lowestRiskCounty}
+            </div>`;
+
+        } else {
+            const modelSuffix = {
+                risklr: "_lr",
+                riskrf: "_rf",
+                riskkm: "_km"
+            };
+
+            const modelLabels = {
+                risklr: "Model: Logistic Regression",
+                riskrf: "Model: Random Forest",
+                riskkm: "Model: K-Means Clustering"
+            };
+
+            const activeModelLabel = modelLabels[state.selectedModel] || "Model";
+            const suffix = modelSuffix[state.selectedModel] || "";
+
+            return `
+            <h4>${d.properties.state_name} (${state.selectedYear})</h4>
+            <div class="row" style="margin-bottom: 4px; border-bottom: 1px solid ${THEME.tooltip}; padding-bottom: 4px;">
+                <span style="color: ${THEME.fallbackGray}; font-size: 0.8rem;">${activeModelLabel}</span>
             </div>
-        `;
+            <div class="row"><span>High Risk Tracts:</span> <strong>${info["highRiskCount" + suffix]}</strong></div>
+            <div class="row"><span>Mid Risk Tracts:</span> <strong>${info["midRiskCount" + suffix]}</strong></div>
+            <div class="row"><span>Low Risk Tracts:</span> <strong>${info["lowRiskCount" + suffix]}</strong></div>
+            <div style="margin-top:4px; font-size:0.75rem; color:${THEME.fallbackGray};">
+            </div>`;
+        }
     });
 
     // Draw States
@@ -485,37 +528,74 @@ function calculateDominantRiskColor(info) {
     return THEME.low;
 }
 
+
 function updateSidebarNational(yearData) {
-    let totalHigh = 0;
-    let totalMid = 0;
-    let totalLow = 0;
-
-    let stateWithMostHighRisk = { name: "N/A", count: -1 };
-    let stateWithMostLowRisk = { name: "N/A", count: -1 };
-
-    // Sum up the metrics from the state-level CSV
-    yearData.forEach(d => {
-        totalHigh += d.highRiskCount;
-        totalMid += d.midRiskCount;
-        totalLow += d.lowRiskCount;
-
-        if (d.highRiskCount > stateWithMostHighRisk.count) {
-            stateWithMostHighRisk = { name: d.state || d.stateCode, count: d.highRiskCount };
-        }
-        if (d.lowRiskCount > stateWithMostLowRisk.count) {
-            stateWithMostLowRisk = { name: d.state || d.stateCode, count: d.lowRiskCount };
-        }
-    });
-
-    const totalTracts = totalHigh + totalMid + totalLow;
     const formatNum = d3.format(",");
 
-    d3.select("#aggLabel").text("Total Census Tracts (US)");
-    d3.select("#aggValue").text(formatNum(totalTracts));
+    if (state.selectedYear === "2019") {
+        let totalFd = 0;
+        let totalNonFd = 0;
 
-    d3.select("#countHigh").text(formatNum(totalHigh));
-    d3.select("#countMid").text(formatNum(totalMid));
-    d3.select("#countLow").text(formatNum(totalLow));
+        // Sum up the metrics from the state-level CSV
+        yearData.forEach(d => {
+            totalFd += d.fdCount;
+            totalNonFd += d.nonFdCount;
+        });
+
+        const totalTracts = totalFd + totalNonFd;
+
+        d3.select("#aggLabel").text("Total Census Tracts (US)");
+        d3.select("#aggValue").text(formatNum(totalTracts));
+
+        d3.select(".risk-card.high").style("display", "");
+        d3.select(".risk-card.high .risk-indicator").style("background", THEME.food_desert_yes); // Color the dot        
+        d3.select("#labelHigh").text("Food Desert");
+        d3.select("#countHigh").text(formatNum(totalFd));
+
+        d3.select(".risk-card.mid").style("display", "none");
+
+        d3.select(".risk-card.low").style("display", "");
+        d3.select(".risk-card.low .risk-indicator").style("background", THEME.food_desert_no); // Color the dot
+        d3.select("#labelLow").text("Not Food Desert");
+        d3.select("#countLow").text(formatNum(totalNonFd));
+
+    } else {
+        const modelSuffix = {
+            risklr: "_lr",
+            riskrf: "_rf",
+            riskkm: "_km"
+        };
+
+        const suffix = modelSuffix[state.selectedModel] || "";
+        
+        let highCount = 0;
+        let midCount = 0;
+        let lowCount = 0;
+
+        yearData.forEach(d => {
+            highCount += +(d[`highRiskCount${suffix}`] || 0);
+            midCount += +(d[`midRiskCount${suffix}`] || 0);
+            lowCount += +(d[`lowRiskCount${suffix}`] || 0);
+        });
+
+        const totalTracts = lowCount + midCount + highCount;
+
+        d3.select(".risk-card.high").style("display", "").style("border-color", null);
+        d3.select(".risk-card.high .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select("#labelHigh").text("High Risk Tracts");
+        d3.select(".risk-card.mid").style("display", "");
+        d3.select("#labelMid").text("Mid Risk Tracts");
+        d3.select(".risk-card.low").style("display", "").style("border-color", null);
+        d3.select(".risk-card.low .risk-indicator").style("background", null); // Reset dot to CSS var        
+        d3.select("#labelLow").text("Low Risk Tracts");
+
+        d3.select("#aggLabel").text("Total Census Tracts (US)");
+        d3.select("#aggValue").text(formatNum(totalTracts));
+
+        d3.select("#countHigh").text(formatNum(highCount));
+        d3.select("#countMid").text(formatNum(midCount));
+        d3.select("#countLow").text(formatNum(lowCount));
+    }
 
     //hide temporarily
     d3.select(".extremes-section").style("display", "none");
@@ -540,16 +620,18 @@ function updateSidebarState(yearTracts) {
             }
         });
 
-        // 1. High Card (Red) -> Food Desert
+        const totalTracts = fdCount + nonFdCount;
+
+        d3.select("#aggLabel").text("Total Census Tracts (US)");
+        d3.select("#aggValue").text(formatNum(totalTracts));
+
         d3.select(".risk-card.high").style("display", "");
         d3.select(".risk-card.high .risk-indicator").style("background", THEME.food_desert_yes); // Color the dot        
         d3.select("#labelHigh").text("Food Desert");
         d3.select("#countHigh").text(formatNum(fdCount));
 
-        // 2. Mid Card (Orange) -> Hide it
         d3.select(".risk-card.mid").style("display", "none");
 
-        // 3. Low Card (Green) -> Not Food Desert
         d3.select(".risk-card.low").style("display", "");
         d3.select(".risk-card.low .risk-indicator").style("background", THEME.food_desert_no); // Color the dot
         d3.select("#labelLow").text("Not Food Desert");
@@ -585,9 +667,12 @@ function updateSidebarState(yearTracts) {
 
         d3.select(".risk-card.high").style("display", "").style("border-color", null);
         d3.select(".risk-card.high .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select("#labelHigh").text("High Risk Tracts");
         d3.select(".risk-card.mid").style("display", "");
+        d3.select("#labelMid").text("Mid Risk Tracts");
         d3.select(".risk-card.low").style("display", "").style("border-color", null);
         d3.select(".risk-card.low .risk-indicator").style("background", null); // Reset dot to CSS var
+        d3.select("#labelLow").text("Low Risk Tracts");
 
         d3.select("#aggLabel").text(`Total Census Tracts (${state.selectedStateName})`);
         d3.select("#aggValue").text(formatNum(totalTracts));
@@ -604,7 +689,6 @@ function updateSidebarState(yearTracts) {
 
     d3.select(".extremes-section").style("display", "");
 }
-
 
 function getRiskColorTract(riskLevel) {
     switch (riskLevel?.toLowerCase()) {

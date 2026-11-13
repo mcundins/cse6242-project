@@ -16,15 +16,15 @@ fips_to_state = {
     '55': 'Wisconsin', '56': 'Wyoming'
 }
 
-df = pd.read_csv("./data/us_tracts_2019_fd.csv",
+df_2019_raw = pd.read_csv("./data/us_tracts_2019_fd.csv",
                     dtype={"tract_id": str, "state": str})
 
 
-small_df = df[['tract_id', 'state', 'food_desert']].copy()
-small_df['fdCount'] = small_df['food_desert'].astype(int)
-small_df['nonFdCount'] = (~small_df['food_desert']).astype(int)
+small_2019_df = df_2019_raw[['tract_id', 'state', 'food_desert']].copy()
+small_2019_df['fdCount'] = small_2019_df['food_desert'].astype(int)
+small_2019_df['nonFdCount'] = (~small_2019_df['food_desert']).astype(int)
 
-grouped = small_df.groupby('state').agg(
+grouped = small_2019_df.groupby('state').agg(
     fdCount=('fdCount', 'sum'),
     nonFdCount=('nonFdCount', 'sum')
 ).reset_index()
@@ -35,13 +35,37 @@ grouped['stateName'] = grouped['stateCode'].map(fips_to_state)
 
 final_2019_df = grouped[['year', 'stateCode', 'stateName', 'fdCount', 'nonFdCount']]
 
-#print(final_2019_df)
+#print(final_2019_df.head())
 
-#now take the data\us_states_risk_2019_2025.csv file and update with 2019 lines.
+#now take the 2025 predictions tract and group to summarize.
 
-df = pd.read_csv("./data/us_states_risk_2019_2025.csv",
-                    dtype={"stateCode": str})
+df = pd.read_csv('data/us_tracts_risk_2025_predictions.csv',
+                    dtype={"tract_id": str, "state": str})
 
-print(df)
+small_2025_df = df[['tract_id', 'state', 'risk_lr', 'risk_rf', 'risk_km']].copy()
+small_2025_df.rename(columns={'state': 'stateCode'}, inplace=True)
+small_2025_df['stateName'] = small_2025_df['stateCode'].map(fips_to_state)
 
-#final_df.to_csv("./data/us_states_2019_fd.csv", index=False)
+small_2025_df['year'] = '2025'
+grouped = small_2025_df.groupby(['year', 'stateCode','stateName']).agg(
+    highRiskCount_lr=('risk_lr', lambda x: (x == 'high').sum()),
+    midRiskCount_lr=('risk_lr', lambda x: (x == 'mid').sum()),
+    lowRiskCount_lr=('risk_lr', lambda x: (x == 'low').sum()),
+
+    highRiskCount_km=('risk_km', lambda x: (x == 'high').sum()),
+    midRiskCount_km=('risk_km', lambda x: (x == 'mid').sum()),
+    lowRiskCount_km=('risk_km', lambda x: (x == 'low').sum()),
+
+    highRiskCount_rf=('risk_rf', lambda x: (x == 'high').sum()),
+    midRiskCount_rf=('risk_rf', lambda x: (x == 'mid').sum()),
+    lowRiskCount_rf=('risk_rf', lambda x: (x == 'low').sum())
+
+).reset_index()
+
+final_2025_df = grouped
+
+concat = pd.concat([final_2019_df, final_2025_df], ignore_index=True)
+    
+#print(concat)
+
+concat.to_csv("./data/us_states_risk_2019_2025.csv", index=False)
