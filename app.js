@@ -72,7 +72,7 @@ function setupEventListeners() {
         if (state.currentView === "NATIONAL") {
             const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
             updateSidebarNational(yearData);
-        }        
+        }
     });
 }
 
@@ -263,6 +263,25 @@ function renderNationalMap(svg, width, height) {
         }
     });
 
+    let quantileScale2019 = null;
+
+    if (state.selectedYear === "2019") {
+        const interpolator = d3.interpolateRgb(THEME.food_desert_no, THEME.food_desert_yes);
+        const fiveStepPalette = [0, 0.25, 0.5, 0.75, 1].map(t => interpolator(t));
+
+        // Extract food desert rates from the values already inside dataMap
+        const allRates = Array.from(dataMap.values()).map(d => {
+            const fd = +(d.fdCount || 0);
+            const nonFd = +(d.nonFdCount || 0);
+            const total = fd + nonFd;
+            return total > 0 ? fd / total : null;
+        }).filter(v => v !== null);
+
+        quantileScale2019 = d3.scaleQuantile()
+            .domain(allRates)
+            .range(fiveStepPalette);
+    }
+
     // Draw States
     mapGroup.selectAll("path")
         .data(state.geoJson.states.features)
@@ -273,7 +292,7 @@ function renderNationalMap(svg, width, height) {
         .attr("fill", d => {
             const fips = d.properties.state_fips;
             const info = dataMap.get(fips) || dataMap.get(+fips);
-            return calculateDominantRiskColor(info);
+            return calculateDominantColor(info, quantileScale2019);
         })
         .attr("stroke", THEME.strokeColor)
         .attr("stroke-width", 0.1)
@@ -518,16 +537,20 @@ function renderLegend() {
     legendSvg.call(legendOrdinal);
 }
 
-function calculateDominantRiskColor(info) {
+function calculateDominantColor(info, quantileScale) {
     if (!info) return THEME.fallbackGray;
-    if (info.highRiskCount >= info.midRiskCount && info.highRiskCount >= info.lowRiskCount) {
-        return THEME.high;
-    } else if (info.midRiskCount >= info.lowRiskCount) {
-        return THEME.mid;
-    }
-    return THEME.low;
-}
 
+    let quantileScale2019 = null;
+
+    if (state.selectedYear === "2019") {
+        const fd = +(info.fdCount || 0);
+        const nonFd = +(info.nonFdCount || 0);
+        const total = fd + nonFd;
+
+        if (total === 0 || !quantileScale) return THEME.fallbackGray;
+        return quantileScale(fd / total);
+    }
+}
 
 function updateSidebarNational(yearData) {
     const formatNum = d3.format(",");
@@ -567,7 +590,7 @@ function updateSidebarNational(yearData) {
         };
 
         const suffix = modelSuffix[state.selectedModel] || "";
-        
+
         let highCount = 0;
         let midCount = 0;
         let lowCount = 0;
