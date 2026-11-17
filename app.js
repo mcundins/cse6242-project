@@ -30,6 +30,19 @@ const THEME = {
     food_desert_no: "#45551a",
 };
 
+function get2025NationalPalette() {
+    const lowToMid = d3.interpolateHsl(THEME.low, THEME.mid)(0.5);
+    const midToHigh = d3.interpolateHsl(THEME.mid, THEME.high)(0.5);
+
+    return [
+        THEME.low,   // Q1: 
+        lowToMid,    // Q2: 
+        THEME.mid,   // Q3: 
+        midToHigh,   // Q4: 
+        THEME.high   // Q5:
+    ];
+}
+
 // Colors mapping for Risk Levels
 const colorScale2025 = d3.scaleOrdinal()
     .domain(["High Risk", "Mid Risk", "Low Risk", "No data"])
@@ -64,15 +77,7 @@ function setupEventListeners() {
 
     d3.select("#model-select").on("change", function () {
         state.selectedModel = this.value;
-
-        if (state.currentView === "STATE" && state.selectedStateCode) {
-            updateModelColors();
-        }
-
-        if (state.currentView === "NATIONAL") {
-            const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
-            updateSidebarNational(yearData);
-        }        
+        updateModelColors()
     });
 }
 
@@ -196,12 +201,37 @@ function renderMap() {
     renderLegend();
 }
 
+function build2025NationalScale(dataMap) {
+    // 1. Build 5-step ladder from THEME.low -> THEME.mid -> THEME.high
+    const palette2025 = [
+        THEME.low,
+        d3.interpolateHsl(THEME.low, THEME.mid)(0.5),
+        THEME.mid,
+        d3.interpolateHsl(THEME.mid, THEME.high)(0.5),
+        THEME.high
+    ];
+
+    const suffix = { risklr: "_lr", riskrf: "_rf", riskkm: "_km" }[state.selectedModel] || "_lr";
+
+    const scores = Array.from(dataMap.values()).map(d => {
+        const h = +(d["highRiskCount" + suffix] || 0);
+        const m = +(d["midRiskCount" + suffix] || 0);
+        const l = +(d["lowRiskCount" + suffix] || 0);
+        const total = h + m + l;
+        return total > 0 ? ((h * 3) + (m * 2) + (l * 1)) / total : null;
+    }).filter(v => v !== null);
+
+    return d3.scaleQuantile()
+        .domain(scores)
+        .range(palette2025);
+}
+
 /**
  * Render US National Map (State Aggregation)
  */
 function renderNationalMap(svg, width, height) {
     d3.select("#viewSubtitle").text("US National Level • State Risk Aggregation");
-    d3.select("#mapTitle").text(`United States Food Desert Risk (${state.selectedYear})`);
+    d3.select("#mapTitle").text(`US Food Desert Risk (${state.selectedYear})`);
     d3.select("#backBtn").classed("hidden", true);
     d3.select("#clickHint").text("💡 Tip: Click on any State to drill down into State & Tract view.");
 
@@ -263,6 +293,27 @@ function renderNationalMap(svg, width, height) {
         }
     });
 
+    let quantileScale = null;
+
+    if (state.selectedYear === "2019") {
+        const interpolator = d3.interpolateRgb(THEME.food_desert_no, THEME.food_desert_yes);
+        const fiveStepPalette = [0, 0.25, 0.5, 0.75, 1].map(t => interpolator(t));
+
+        // Extract food desert rates from the values already inside dataMap
+        const allRates = Array.from(dataMap.values()).map(d => {
+            const fd = +(d.fdCount || 0);
+            const nonFd = +(d.nonFdCount || 0);
+            const total = fd + nonFd;
+            return total > 0 ? fd / total : null;
+        }).filter(v => v !== null);
+
+        quantileScale = d3.scaleQuantile()
+            .domain(allRates)
+            .range(fiveStepPalette);
+    } else {
+        quantileScale = build2025NationalScale(dataMap);
+    }
+
     // Draw States
     mapGroup.selectAll("path")
         .data(state.geoJson.states.features)
@@ -273,7 +324,7 @@ function renderNationalMap(svg, width, height) {
         .attr("fill", d => {
             const fips = d.properties.state_fips;
             const info = dataMap.get(fips) || dataMap.get(+fips);
-            return calculateDominantRiskColor(info);
+            return calculateDominantColor(info, quantileScale);
         })
         .attr("stroke", THEME.strokeColor)
         .attr("stroke-width", 0.1)
@@ -440,31 +491,51 @@ function renderStateMap(svg, width, height) {
 }
 
 function updateModelColors() {
-    // 1. Get the current data for the selected state and year
-    const yearTracts = state.datasets.tracts.filter(
-        d => d.year === state.selectedYear && d.stateCode === state.selectedStateCode
-    );
+    if (state.currentView == "STATE") {
+        const yearTracts = state.datasets.tracts.filter(
+            d => d.year === state.selectedYear && d.stateCode === state.selectedStateCode
+        );
 
-    // 2. Build the lookup map
-    const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
+        // 2. Build the lookup map
+        const riskDataMap = new Map(yearTracts.map(d => [d.tractId, d]));
 
-    d3.selectAll(".tract-path")
-        .transition()
-        .duration(400)
-        .attr("fill", d => {
-            const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
-            const tractData = riskDataMap.get(tractId);
+        d3.selectAll(".tract-path")
+            .transition()
+            .duration(400)
+            .attr("fill", d => {
+                const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
+                const tractData = riskDataMap.get(tractId);
 
-            if (tractData) {
-                // Dynamically grab the new risk model's value (risklr, riskrf, riskkm)
-                const activeRiskValue = tractData[state.selectedModel];
-                return getRiskColorTract(activeRiskValue);
-            }
+                if (tractData) {
+                    // Dynamically grab the new risk model's value (risklr, riskrf, riskkm)
+                    const activeRiskValue = tractData[state.selectedModel];
+                    return getRiskColorTract(activeRiskValue);
+                }
 
-            return THEME.fallbackGray;
-        });
+                return THEME.fallbackGray;
+            });
 
-    updateSidebarState(yearTracts);
+        updateSidebarState(yearTracts);
+        return;
+    }
+
+    if (state.currentView == "NATIONAL") {
+        const yearData = state.datasets.states.filter(d => d.year === state.selectedYear);
+        const dataMap = new Map(yearData.map(d => [d.stateCode, d]));
+        const quantileScale = build2025NationalScale(dataMap);
+
+        d3.selectAll(".feature-path")
+            .transition()
+            .duration(400)
+            .attr("fill", d => {
+                const fips = d.properties.state_fips;
+                const info = dataMap.get(fips) || dataMap.get(+fips);
+                return calculateDominantColor(info, quantileScale);
+            });
+
+        updateSidebarNational(yearData);
+        return;
+    }
 }
 
 /**
@@ -518,16 +589,29 @@ function renderLegend() {
     legendSvg.call(legendOrdinal);
 }
 
-function calculateDominantRiskColor(info) {
+function calculateDominantColor(info, quantileScale) {
     if (!info) return THEME.fallbackGray;
-    if (info.highRiskCount >= info.midRiskCount && info.highRiskCount >= info.lowRiskCount) {
-        return THEME.high;
-    } else if (info.midRiskCount >= info.lowRiskCount) {
-        return THEME.mid;
-    }
-    return THEME.low;
-}
 
+
+    if (state.selectedYear === "2019") {
+        const fd = +(info.fdCount || 0);
+        const nonFd = +(info.nonFdCount || 0);
+        const total = fd + nonFd;
+
+        if (total === 0 || !quantileScale) return THEME.fallbackGray;
+        return quantileScale(fd / total);
+    } else {
+        const suffix = { risklr: "_lr", riskrf: "_rf", riskkm: "_km" }[state.selectedModel] || "_lr";
+        const h = +(info["highRiskCount" + suffix] || 0);
+        const m = +(info["midRiskCount" + suffix] || 0);
+        const l = +(info["lowRiskCount" + suffix] || 0);
+        const total = h + m + l;
+
+        if (total === 0) return THEME.fallbackGray;
+        const weightedScore = ((h * 3) + (m * 2) + (l * 1)) / total;
+        return quantileScale(weightedScore);
+    }
+}
 
 function updateSidebarNational(yearData) {
     const formatNum = d3.format(",");
@@ -567,7 +651,7 @@ function updateSidebarNational(yearData) {
         };
 
         const suffix = modelSuffix[state.selectedModel] || "";
-        
+
         let highCount = 0;
         let midCount = 0;
         let lowCount = 0;
