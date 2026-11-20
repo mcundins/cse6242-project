@@ -26,8 +26,9 @@ const THEME = {
     tooltip: "#334155",
     strokeColor: "#ffffff",
 
-    food_desert_yes: "#d8e61a",
-    food_desert_no: "#45551a",
+    food_desert_palette: ["#fee6ce", "#fdae6b", "#e6550d"],
+    food_desert_yes: "#e6550d", // Darker orange
+    food_desert_no: "#fee6ce",  // Lighter peach
 };
 
 function get2025NationalPalette() {
@@ -296,10 +297,6 @@ function renderNationalMap(svg, width, height) {
     let quantileScale = null;
 
     if (state.selectedYear === "2019") {
-        const interpolator = d3.interpolateRgb(THEME.food_desert_no, THEME.food_desert_yes);
-        const fiveStepPalette = [0, 0.25, 0.5, 0.75, 1].map(t => interpolator(t));
-
-        // Extract food desert rates from the values already inside dataMap
         const allRates = Array.from(dataMap.values()).map(d => {
             const fd = +(d.fdCount || 0);
             const nonFd = +(d.nonFdCount || 0);
@@ -309,7 +306,7 @@ function renderNationalMap(svg, width, height) {
 
         quantileScale = d3.scaleQuantile()
             .domain(allRates)
-            .range(fiveStepPalette);
+            .range(THEME.food_desert_palette);
     } else {
         quantileScale = build2025NationalScale(dataMap);
     }
@@ -566,10 +563,32 @@ function renderLegend() {
     const container = d3.select("#riskLegend");
     container.html("");
 
-    const activeScale = state.selectedYear === "2019" ? colorScale2019 : colorScale2025;
+    let activeScale
+    let legendWidth
+    let shapePadding
 
-    // Adjust width depending on how many items are in the legend
-    const legendWidth = state.selectedYear === "2019" ? 350 : 420;
+    if (state.currentView === "STATE" && state.selectedYear === "2019") {
+        activeScale = colorScale2019
+        legendWidth = 350
+    }
+
+    if (state.currentView === "NATIONAL" && state.selectedYear === "2025") {
+        activeScale = colorScale2025
+        legendWidth = 420
+    }
+
+    if (state.currentView === "STATE" && state.selectedYear === "2025") {
+        activeScale = colorScale2025
+        legendWidth = 420
+    }
+
+    if (state.currentView === "NATIONAL" && state.selectedYear === "2019") {
+        activeScale = d3.scaleOrdinal()
+            .domain(["Low %", "Moderate %", "High %", "No Data"])
+            .range([...THEME.food_desert_palette, THEME.fallbackGray]);
+        legendWidth = 500;
+        shapePadding = 125;
+    }
 
     const legendSvg = container.append("svg")
         .attr("width", legendWidth)
