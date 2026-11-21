@@ -555,32 +555,26 @@ function renderLegend() {
     container.html("");
 
     let activeScale
-    let legendWidth
-    let shapePadding
+    let legendWidth = 420
 
     if (state.currentView === "STATE" && state.selectedYear === "2019") {
         activeScale = colorScale2019
-        legendWidth = 350
     }
 
     if (state.currentView === "NATIONAL" && state.selectedYear === "2025") {
         activeScale = d3.scaleOrdinal()
             .domain(["Low %", "Moderate %", "High %", "No Data"])
             .range([THEME.low, THEME.mid, THEME.high, THEME.fallbackGray]);
-        legendWidth = 420
     }
 
     if (state.currentView === "STATE" && state.selectedYear === "2025") {
         activeScale = colorScale2025
-        legendWidth = 420
     }
 
     if (state.currentView === "NATIONAL" && state.selectedYear === "2019") {
         activeScale = d3.scaleOrdinal()
             .domain(["Low %", "Moderate %", "High %", "No Data"])
             .range([...THEME.food_desert_palette, THEME.fallbackGray]);
-        legendWidth = 500;
-        shapePadding = 125;
     }
 
     const legendSvg = container.append("svg")
