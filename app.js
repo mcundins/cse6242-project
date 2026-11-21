@@ -46,12 +46,12 @@ function get2025NationalPalette() {
 
 // Colors mapping for Risk Levels
 const colorScale2025 = d3.scaleOrdinal()
-    .domain(["High Risk", "Mid Risk", "Low Risk", "No data"])
-    .range([THEME.high, THEME.mid, THEME.low, THEME.fallbackGray]);
+    .domain(["Low Risk", "Mid Risk", "High Risk", "No data"])
+    .range([THEME.low, THEME.mid, THEME.high, THEME.fallbackGray]);
 
 const colorScale2019 = d3.scaleOrdinal()
-    .domain(["Food Desert", "Not Food Desert", "No Data"])
-    .range([THEME.food_desert_yes, THEME.food_desert_no, THEME.fallbackGray]);
+    .domain(["Not Food Desert", "Food Desert", "No Data"])
+    .range([THEME.food_desert_no, THEME.food_desert_yes, THEME.fallbackGray]);
 
 // D3 Tip Tooltip Instance
 const tip = d3.tip()
@@ -203,15 +203,6 @@ function renderMap() {
 }
 
 function build2025NationalScale(dataMap) {
-    // 1. Build 5-step ladder from THEME.low -> THEME.mid -> THEME.high
-    const palette2025 = [
-        THEME.low,
-        d3.interpolateHsl(THEME.low, THEME.mid)(0.5),
-        THEME.mid,
-        d3.interpolateHsl(THEME.mid, THEME.high)(0.5),
-        THEME.high
-    ];
-
     const suffix = { risklr: "_lr", riskrf: "_rf", riskkm: "_km" }[state.selectedModel] || "_lr";
 
     const scores = Array.from(dataMap.values()).map(d => {
@@ -224,7 +215,7 @@ function build2025NationalScale(dataMap) {
 
     return d3.scaleQuantile()
         .domain(scores)
-        .range(palette2025);
+        .range([THEME.low, THEME.mid, THEME.high]);
 }
 
 /**
@@ -573,7 +564,9 @@ function renderLegend() {
     }
 
     if (state.currentView === "NATIONAL" && state.selectedYear === "2025") {
-        activeScale = colorScale2025
+        activeScale = d3.scaleOrdinal()
+            .domain(["Low %", "Moderate %", "High %", "No Data"])
+            .range([THEME.low, THEME.mid, THEME.high, THEME.fallbackGray]);
         legendWidth = 420
     }
 
