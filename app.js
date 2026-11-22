@@ -122,8 +122,6 @@ function loadAllData() {
 
         state.datasets.tracts = [...parsed2025Tracts, ...parsed2019Tracts]
 
-        //console.log("Raw CSV from D3:", tracts2025Csv);
-        //console.log("Raw CSV length:", tracts2025Csv.length);
 
         // Convert 2019 TopoJSON
         const key2019 = Object.keys(tracts2010TopoJson.objects)[0];
@@ -141,8 +139,6 @@ function loadAllData() {
 }
 
 function updateModelControlVisibility() {
-    //console.log("View:", state.currentView, "| Year:", state.selectedYear);
-
     const modelGroup = d3.select("#model-control-group");
 
     //if (state.currentView === "STATE" && String(state.selectedYear) === "2025") {
@@ -433,16 +429,6 @@ function renderStateMap(svg, width, height) {
         .attr("fill", (d, i) => {
             const tractId = String(d.id || d.properties.geoid).padStart(11, '0');
             const tractData = riskDataMap.get(tractId);
-
-            /*
-            if (i === 0) {
-                console.log("1. Selected Year:", state.selectedYear, "| Type:", typeof state.selectedYear);
-                console.log("2. Total tracts loaded in memory:", state.datasets.tracts.length);
-
-                console.log("TopoJSON ID:", tractId);
-                console.log("CSV id?:", tractData);
-            }
-            */
 
             if (!tractData) return THEME.fallbackGray;
 
