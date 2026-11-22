@@ -153,7 +153,7 @@ DATA PIPELINE & LINEAGE WORKFLOW
       across 2025 census tracts
       Output: data/us_tracts_risk_2025_predictions.csv
   - scripts/update_states_2019_2025_summaries.py & 2025_states_risk_script.ipynb
-      Source: Aggregates tract-level outputs to 2-digit FIPS state counts
+      Source: Aggregates tract-level outputs and counts to 2-digit FIPS State
       Output: data/us_states_risk_2019_2025.csv
 
 +------------------------------------------------------------------------------+
@@ -166,7 +166,21 @@ DATA PIPELINE & LINEAGE WORKFLOW
       data/tracts_2010_topoJSON.json (2010 census boundaries for 2019 data)
       data/tracts_2020_topoJSON.json (2020 census boundaries for 2025 data)
       data/geography/states.geojson   (US states polygon geometry)
-      
+  - There was one manual, non-automated step that included Mapshaper where both
+    files were loaded separately and we performed the following steps on the 
+    Mapshaper Console to standardize and reduce the size of the files and make 
+    it easier for the application to load and manage in runtime.
+
+    - merge-layers target | all layers are at the same level. That simplifies 
+    programmatically the access to the tracts.
+    - rename-layers tracts | Rename the layers names to tracts for uniformity in 
+    names of objects.
+    - proj albersusa | This type of projection simplifies the view on a map 
+    rather than a mercator that will be skewed on the web application and make 
+    the user experience not ideal.
+    - simplify dp 5% | The most important step to reduce size. An algorithm 
+    that reduces redundant coordinate points that are invisible to the human eye
+     on a screen and saves hundreds of MBs for a more smooth user experience.
 
 --------------------------------------------------------------------------------
 LOCAL SETUP & EXECUTION
