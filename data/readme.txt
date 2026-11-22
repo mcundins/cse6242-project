@@ -130,8 +130,11 @@ DATA PIPELINE & LINEAGE WORKFLOW
 | 3. MACHINE LEARNING MODELING & PREDICTIONS                                   |
 +------------------------------------------------------------------------------+
   - Logistic Regression (logistic_regression_modeling/):
-      Script: FD_risk_prediction_modeling.ipynb & modeling_2025data.ipynb
+      Training Script: FD_risk_prediction_modeling.ipynb
+      Training Script Input: DataCleaningFeatureEngeering/.../cleaned_2019.csv
       Artifact: log_reg_model.pkl
+      Predictions Script: modeling_2025data.ipynb
+      Predictions Script Input: DataCleaningFeatureEngeering/.../cleaned_2025.csv
       Output: cleaned_2025_w_predictions.csv
   - Random Forest (random_forest_model/):
       Script: RF_risk_prediction_modeling.ipynb & RF_modeling_2025data.ipynb
