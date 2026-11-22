@@ -56,7 +56,12 @@ PROJECT STRUCTURE
 │   ├── d3-legend.min.js
 │   ├── d3-tip.min.js
 │   └── topojson.v2.min.js
-└── data/                                     # Tabular datasets and geographic boundary files
+├── scripts/                                  # Data cleaning, modeling join scripts & aggregators
+├── DataCleaningFeatureEngeering/             # Feature engineering & data handoff notebooks
+├── logistic_regression_modeling/             # Logistic Regression training & predictions
+├── random_forest_model/                      # Random Forest training & predictions
+├── kmeans_modeling/                          # K-Means Clustering training & predictions
+└── data/                                     # Web dashboard data files & GIS topologies
     ├── us_states_risk_2019_2025.csv
     ├── us_tracts_risk_2025_predictions.csv
     ├── us_tracts_2019_fd.csv
@@ -93,6 +98,75 @@ The application loads three CSV datasets and three geographic boundary files
      Analysis Year = 2019.
    - data/tracts_2020_topoJSON.json: 2020 Census Tract TopoJSON used when
      Analysis Year = 2025.
+
+--------------------------------------------------------------------------------
+DATA PIPELINE & LINEAGE WORKFLOW
+--------------------------------------------------------------------------------    
+
++------------------------------------------------------------------------------+
+| 1. RAW DATA SOURCES (raw_data/)                                              |
++------------------------------------------------------------------------------+
+  - 2019 USDA Atlas:
+      raw_data/2019_Food_Access_Research_Atlas_Data/Food Access Research Atlas.csv
+  - 2025 SRAM Data:
+      raw_data/2025-sram-fara-data/SRAM Driving Distance Data.csv
+      raw_data/2025-sram-fara-data/SRAM General Tract Characteristics Data.csv
+      raw_data/2025-sram-fara-data/SRAM Straight Line Distance Data.csv
+
++------------------------------------------------------------------------------+
+| 2. CLEANING & FEATURE ENGINEERING (scripts/ & DataCleaningFeatureEngeering/) |
++------------------------------------------------------------------------------+
+  - Scripts Used:
+      scripts/clean2019FARA.py               -> Cleans 2019 USDA FARA dataset
+      scripts/2025_join_data.py             -> Merges SRAM driving, straight-line,
+                                                 and general tract characteristics
+      scripts/normalize_tract.py            -> Standardizes 11-digit FIPS GEOIDs
+      DataCleaningFeatureEngeering/.../model_input_preparation_for_modeling.ipynb
+  - Intermediate Deliverables:
+      DataCleaningFeatureEngeering/.../cleaned_2019.csv & cleaned_2025.csv
+      DataCleaningFeatureEngeering/.../model_input_2019.csv & model_input_2025.csv
+
++------------------------------------------------------------------------------+
+| 3. MACHINE LEARNING MODELING & PREDICTIONS                                   |
++------------------------------------------------------------------------------+
+  - Logistic Regression (logistic_regression_modeling/):
+      Script: FD_risk_prediction_modeling.ipynb & modeling_2025data.ipynb
+      Artifact: log_reg_model.pkl
+      Output: cleaned_2025_w_predictions.csv
+  - Random Forest (random_forest_model/):
+      Script: RF_risk_prediction_modeling.ipynb & RF_modeling_2025data.ipynb
+      Artifact: rf_model.pkl
+      Output: cleaned_2025_w_rf_predictions.csv
+  - K-Means Clustering (kmeans_modeling/):
+      Script: kmeans_food_desert_risk_train.ipynb & kmeans_food_desert_risk_test.ipynb
+      Artifact: cluster_model.pkl
+      Output: model_output_2025.csv
+
++------------------------------------------------------------------------------+
+| 4. DASHBOARD CSV GENERATION (scripts/)                                       |
++------------------------------------------------------------------------------+
+  - scripts/generate_2019_fd.py
+      Source: DataCleaningFeatureEngeering/.../cleaned_2019.csv
+      Output: data/us_tracts_2019_fd.csv
+  - scripts/generate_2025_risk_predictions.py
+      Source: Merges Logistic Regression, Random Forest, and K-Means predictions 
+      across 2025 census tracts
+      Output: data/us_tracts_risk_2025_predictions.csv
+  - scripts/update_states_2019_2025_summaries.py & 2025_states_risk_script.ipynb
+      Source: Aggregates tract-level outputs to 2-digit FIPS state counts
+      Output: data/us_states_risk_2019_2025.csv
+
++------------------------------------------------------------------------------+
+| 5. GEOSPATIAL TOPOLOGY PREPARATION (data/geography/)                         |
++------------------------------------------------------------------------------+
+  - Source: Individual state TopoJSON files in data/geography/tracts/2010/*.topojson
+            and data/geography/tracts/2020/*.topojson
+  - Processing: Documented in data/geography/Tract Geo data processing.md
+  - Final Web Topologies:
+      data/tracts_2010_topoJSON.json (2010 census boundaries for 2019 data)
+      data/tracts_2020_topoJSON.json (2020 census boundaries for 2025 data)
+      data/geography/states.geojson   (US states polygon geometry)
+      
 
 --------------------------------------------------------------------------------
 LOCAL SETUP & EXECUTION
