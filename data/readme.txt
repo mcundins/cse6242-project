@@ -6,6 +6,12 @@ An interactive D3.js choropleth visualization dashboard for exploring US food
 desert status in 2019 alongside 2025 machine learning risk predictions across
 national (state-aggregated) and census tract levels.
 
+Application has been published under GNU license on GitHub:
+The whole Team 9 has agreed to it.
+Team 9: ysouffront3, rgunton6, mmiao6, camaral3, jramirez320, mcundins3
+
+https://mcundins.github.io/cse6242-project/
+
 --------------------------------------------------------------------------------
 FEATURES
 --------------------------------------------------------------------------------
@@ -104,14 +110,17 @@ DATA PIPELINE & LINEAGE WORKFLOW
 --------------------------------------------------------------------------------    
 
 +------------------------------------------------------------------------------+
-| 1. RAW DATA SOURCES (raw_data/)                                              |
+| 1. RAW DATA SOURCES (not included in package)                                |
+| Need to be downloaded from:                                                  |
+| https://www.ers.usda.gov/data-products/food-access-research-atlas/download-the-data
 +------------------------------------------------------------------------------+
-  - 2019 USDA Atlas:
-      raw_data/2019_Food_Access_Research_Atlas_Data/Food Access Research Atlas.csv
-  - 2025 SRAM Data:
-      raw_data/2025-sram-fara-data/SRAM Driving Distance Data.csv
-      raw_data/2025-sram-fara-data/SRAM General Tract Characteristics Data.csv
-      raw_data/2025-sram-fara-data/SRAM Straight Line Distance Data.csv
+  - 2019 USDA Atlas: (2019 Large Retailer Access Map (LRAM) (formerly known as 
+      the Food Access Research Atlas (FARA)) Data)
+      Food Access Research Atlas.csv
+  - 2025 SRAM Data: (2025 SNAP-authorized Retailer Access Map (SRAM) Data)
+      SRAM Driving Distance Data.csv
+      SRAM General Tract Characteristics Data.csv
+      SRAM Straight Line Distance Data.csv
 
 +------------------------------------------------------------------------------+
 | 2. CLEANING & FEATURE ENGINEERING (scripts/ & DataCleaningFeatureEngeering/) |
@@ -162,17 +171,18 @@ DATA PIPELINE & LINEAGE WORKFLOW
 +------------------------------------------------------------------------------+
 | 5. GEOSPATIAL TOPOLOGY PREPARATION (data/geography/)                         |
 +------------------------------------------------------------------------------+
-  - Source: Individual state TopoJSON files in data/geography/tracts/2010/*.topojson
-            and data/geography/tracts/2020/*.topojson
+  - Source: Individual state TopoJSON files can be downloaded from Census.gov.
+    2010 census: https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2010&layergroup=Census+Tracts 
+    2020 census: https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2020&layergroup=Census+Tracts
   - Processing: Documented in data/geography/Tract Geo data processing.md
   - Final Web Topologies:
       data/tracts_2010_topoJSON.json (2010 census boundaries for 2019 data)
       data/tracts_2020_topoJSON.json (2020 census boundaries for 2025 data)
       data/geography/states.geojson   (US states polygon geometry)
-  - There was one manual, non-automated step that included Mapshaper where both
-    files were loaded separately and we performed the following steps on the 
-    Mapshaper Console to standardize and reduce the size of the files and make 
-    it easier for the application to load and manage in runtime.
+  - There was one manual, non-automated step that included Mapshaper where TopoJSON
+    files were loaded and performed the following steps on the Mapshaper Console 
+    to standardize and reduce the size of the files and make it easier for 
+    the application to load and manage in runtime.
 
     - merge-layers target | all layers are at the same level. That simplifies 
     programmatically the access to the tracts.
@@ -181,9 +191,10 @@ DATA PIPELINE & LINEAGE WORKFLOW
     - proj albersusa | This type of projection simplifies the view on a map 
     rather than a mercator that will be skewed on the web application and make 
     the user experience not ideal.
-    - simplify dp 5% | The most important step to reduce size. An algorithm 
-    that reduces redundant coordinate points that are invisible to the human eye
-     on a screen and saves hundreds of MBs for a more smooth user experience.
+    - simplify dp 5% | The most important step to reduce size. It was applied
+    Ramer–Douglas–Peucker algorithm. An algorithm that reduces redundant 
+    coordinate points that are invisible to the human eye on a screen and 
+    saves hundreds of MBs for a more smooth user experience.
 
 --------------------------------------------------------------------------------
 LOCAL SETUP & EXECUTION
