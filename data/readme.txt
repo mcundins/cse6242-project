@@ -180,12 +180,12 @@ DATA PIPELINE & LINEAGE WORKFLOW
       data/tracts_2020_topoJSON.json (2020 census boundaries for 2025 data)
       data/geography/states.geojson   (US states polygon geometry)
   - There was one manual, non-automated step that included Mapshaper where TopoJSON
-    files were loaded and performed the following steps on the Mapshaper Console 
-    to standardize and reduce the size of the files and make it easier for 
-    the application to load and manage in runtime.
+    files and GeoJSON files were loaded and performed the following steps on the 
+    Mapshaper Console to standardize and reduce the size of the files and make 
+    it easier for the application to load and manage in runtime.
 
-    - merge-layers target | all layers are at the same level. That simplifies 
-    programmatically the access to the tracts.
+    - merge-layers target=* | all layers are at the same level. That 
+      simplifies programmatically the access to the tracts.
     - rename-layers tracts | Rename the layers names to tracts for uniformity in 
     names of objects.
     - proj albersusa | This type of projection simplifies the view on a map 
