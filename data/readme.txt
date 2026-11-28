@@ -12,6 +12,9 @@ Team 9: ysouffront3, rgunton6, mmiao6, camaral3, jramirez320, mcundins3
 
 https://mcundins.github.io/cse6242-project/
 
+Dashboard Demo recording:
+https://www.youtube.com/watch?v=1uIIWHxxVXw 
+
 --------------------------------------------------------------------------------
 FEATURES
 --------------------------------------------------------------------------------
